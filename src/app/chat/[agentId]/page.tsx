@@ -84,7 +84,7 @@ export default function ChatPage() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
         {/* Content tab bar */}
         <div className="flex items-center gap-1 px-4 py-2 border-b bg-background/50">
           <button onClick={() => setContentTab("chat")}
@@ -98,7 +98,7 @@ export default function ChatPage() {
         </div>
 
         {contentTab === "chat" ? (
-          <div className="flex-1">
+          <div className="flex-1 min-h-0">
             <ChatInterface agentId={agentId} sessionId={sessionId} onAgentLoaded={setAgentName} />
           </div>
         ) : (
