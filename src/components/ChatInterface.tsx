@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
@@ -316,12 +317,8 @@ export function ChatInterface({
         </div>
       )}
 
-      {/* Messages area — flex-1 min-h-0 to allow shrinking */}
-      <div
-        className="flex-1 min-h-0 overflow-y-auto p-4"
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-      >
+      {/* Messages area */}
+      <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollContainerRef} onScroll={handleScroll}>
         <div className="space-y-6 max-w-3xl mx-auto">
           {!historyLoaded ? (
             <div className="flex justify-center py-20">
@@ -461,7 +458,7 @@ export function ChatInterface({
             </div>
           )}
         </div>
-      </div>
+      </ScrollArea>
 
       {/* Jump to bottom button */}
       {userScrolledUp && (
