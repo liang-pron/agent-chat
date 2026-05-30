@@ -27,11 +27,12 @@ export async function PATCH(
   const { id } = await params;
   try {
     const body = await req.json();
-    const { name, avatarUrl, category, document } = body as {
+    const { name, avatarUrl, category, document, systemPrompt } = body as {
       name?: string;
       avatarUrl?: string | null;
       category?: string;
       document?: string;
+      systemPrompt?: string;
     };
 
     if (name !== undefined && !name.trim()) {
@@ -43,6 +44,7 @@ export async function PATCH(
       ...(avatarUrl !== undefined ? { avatarUrl } : {}),
       ...(category !== undefined ? { category } : {}),
       ...(document !== undefined ? { document } : {}),
+      ...(systemPrompt !== undefined ? { systemPrompt } : {}),
     });
 
     return NextResponse.json({ agent });

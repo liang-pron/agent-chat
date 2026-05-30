@@ -13,12 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Plus, ChevronDown } from "lucide-react";
 
 interface AgentEditDialogProps {
   open: boolean;
   onClose: () => void;
-  agent: { id: string; name: string; avatarUrl: string | null; category: string; document?: string };
+  agent: { id: string; name: string; avatarUrl: string | null; category: string; document?: string; systemPrompt?: string };
   onSaved: () => void;
 }
 
@@ -27,6 +27,10 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
   const [avatarUrl, setAvatarUrl] = useState(agent.avatarUrl || "");
   const [category, setCategory] = useState(agent.category);
   const [document, setDocument] = useState(agent.document || "");
+  const [systemPrompt, setSystemPrompt] = useState(agent.systemPrompt || "");
+  const [showSkillImport, setShowSkillImport] = useState(false);
+  const [skillUrl, setSkillUrl] = useState("");
+  const [importing, setImporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +66,41 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
     }
   };
 
+  // Import skill from URL or file and append to system prompt
+  const handleImportSkill = async (source: "url" | "file", file?: File) => {
+    setImporting(true);
+    setError(null);
+    try {
+      let content = "";
+      if (source === "url" && skillUrl.trim()) {
+        const res = await fetch("/api/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ githubUrl: skillUrl.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "导入失败");
+        // Fetch the agent's full system prompt
+        const agentRes = await fetch(`/api/agents/${data.agent?.id || agent.id}`);
+        const agentData = await agentRes.json();
+        content = agentData.agent?.systemPrompt || "";
+      } else if (source === "file" && file) {
+        content = await file.text();
+        const parsed = content.match(/^---\n[\s\S]*?\n---\n?([\s\S]*)$/);
+        if (parsed) content = parsed[1].trim();
+      }
+
+      if (content) {
+        setSystemPrompt((prev) => prev + "\n\n---\n\n" + content);
+        setSkillUrl("");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "导入失败");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!name.trim()) {
       setError("角色名不能为空");
@@ -79,6 +118,7 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
           avatarUrl: avatarUrl.trim() || null,
           category,
           document,
+          systemPrompt,
         }),
       });
 
@@ -102,6 +142,7 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
       setName(agent.name);
       setCategory(agent.category);
       setDocument(agent.document || "");
+      setSystemPrompt(agent.systemPrompt || "");
       setAvatarUrl(agent.avatarUrl || "");
       setError(null);
     } else {
@@ -162,6 +203,58 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Import additional skill */}
+          <div className="border rounded-lg">
+            <button
+              type="button"
+              onClick={() => setShowSkillImport(!showSkillImport)}
+              className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium hover:bg-secondary/50 rounded-lg transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <Plus className="w-3.5 h-3.5" />
+                导入新 skill 到当前角色
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showSkillImport ? "rotate-180" : ""}`} />
+            </button>
+
+            {showSkillImport && (
+              <div className="px-3 pb-3 space-y-2 border-t">
+                {/* URL import */}
+                <div className="flex gap-2 pt-2">
+                  <input
+                    placeholder="粘贴 GitHub 链接或 SKILL.md URL"
+                    value={skillUrl}
+                    onChange={(e) => setSkillUrl(e.target.value)}
+                    className="flex-1 h-8 rounded-lg border border-input bg-background px-2.5 text-xs"
+                  />
+                  <button
+                    onClick={() => handleImportSkill("url")}
+                    disabled={!skillUrl.trim() || importing}
+                    className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {importing ? "导入中" : "导入"}
+                  </button>
+                </div>
+
+                {/* File import */}
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                  <Upload className="w-3 h-3" />
+                  或从本地文件导入
+                  <input
+                    type="file"
+                    accept=".md"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleImportSkill("file", f);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+            )}
           </div>
 
           {/* Document */}
