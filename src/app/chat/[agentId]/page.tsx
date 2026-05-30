@@ -41,11 +41,11 @@ export default function ChatPage() {
   }, [agentId]);
 
   return (
-    <div className="flex absolute inset-0 top-14 -mx-4 overflow-hidden">
+    <div className="flex absolute inset-0 top-14 overflow-hidden">
       {/* Left sidebar — toggle + sub-tabs */}
-      <div className="flex border-r bg-background/50 -ml-4">
+      <div className="flex border-r bg-background/50">
         {/* Toggle column */}
-        <div className="flex flex-col items-center pt-1.5 px-0.5 border-r">
+        <div className="flex flex-col items-center pt-1.5 px-1 border-r">
           <button onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
             title={sidebarOpen ? "收起" : "展开"}>
