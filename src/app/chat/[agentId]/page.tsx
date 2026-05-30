@@ -34,11 +34,11 @@ export default function ChatPage() {
   }, [agentId]);
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] -mx-4">
+    <div className="flex h-[calc(100vh-8rem)] -mx-4 -my-6 -mr-6">
       {/* Sidebar */}
-      <div className="flex border-r bg-background/50">
+      <div className="flex border-r bg-background/50 -ml-4">
         {/* Toggle button */}
-        <div className="flex flex-col items-center pt-1 px-0.5 border-r">
+        <div className="flex flex-col items-center pt-1.5 px-0.5">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
