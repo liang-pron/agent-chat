@@ -9,12 +9,11 @@ import { Bot } from "lucide-react";
 
 export default function HomePage() {
   const [agents, setAgents] = useState<AgentWithCount[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [firstLoad, setFirstLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState("全部");
 
   const fetchAgents = useCallback(async (cat: string) => {
-    setLoading(true);
     setError(null);
     try {
       const params = cat !== "全部" ? `?category=${encodeURIComponent(cat)}` : "";
@@ -25,7 +24,7 @@ export default function HomePage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载角色列表失败");
     } finally {
-      setLoading(false);
+      setFirstLoad(false);
     }
   }, []);
 
@@ -52,7 +51,7 @@ export default function HomePage() {
       <CategoryFilter active={category} onChange={setCategory} />
 
       {/* Agent grid */}
-      {loading ? (
+      {firstLoad ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-40 rounded-xl" />
