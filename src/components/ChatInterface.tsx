@@ -3,9 +3,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Settings, Key } from "lucide-react";
 
 interface Message {
   id: string;
@@ -25,6 +27,12 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [apiKey, setApiKey] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("user-deepseek-api-key") || "";
+  });
 
   const [sessionId] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -72,7 +80,7 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
       const response = await fetch(`/api/agents/${agentId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages, sessionId }),
+        body: JSON.stringify({ messages: apiMessages, sessionId, apiKey }),
       });
 
       if (!response.ok) {
@@ -131,7 +139,67 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
           <h2 className="font-semibold">{agentName}</h2>
           <p className="text-xs text-muted-foreground">AI 角色扮演</p>
         </div>
+        <div className="flex-1" />
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className={cn(
+            "p-2 rounded-lg transition-colors",
+            showSettings
+              ? "bg-primary/10 text-primary"
+              : "hover:bg-secondary text-muted-foreground"
+          )}
+          title="设置 API Key"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
       </div>
+
+      {/* Settings panel */}
+      {showSettings && (
+        <div className="px-4 py-3 border-b bg-secondary/30 space-y-2">
+          <p className="text-xs font-medium flex items-center gap-1.5">
+            <Key className="w-3.5 h-3.5" />
+            设置你的 API Key（存在浏览器本地，不会上传到服务器）
+          </p>
+          <div className="flex gap-2">
+            <Input
+              type="password"
+              placeholder="sk-..."
+              value={apiKey}
+              onChange={(e) => {
+                const val = e.target.value;
+                setApiKey(val);
+                localStorage.setItem("user-deepseek-api-key", val);
+              }}
+              className="h-8 text-sm font-mono"
+            />
+            {apiKey && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="shrink-0 text-xs text-muted-foreground"
+                onClick={() => {
+                  setApiKey("");
+                  localStorage.removeItem("user-deepseek-api-key");
+                }}
+              >
+                清除
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            使用你自己的 DeepSeek API Key 来聊天，不消耗站点额度。
+            <a
+              href="https://platform.deepseek.com/api_keys"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline ml-1"
+            >
+              获取 Key →
+            </a>
+          </p>
+        </div>
+      )}
 
       {/* Messages area */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>

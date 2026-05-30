@@ -14,9 +14,10 @@ export async function POST(
 
   try {
     const body = await req.json();
-    const { messages, sessionId } = body as {
+    const { messages, sessionId, apiKey } = body as {
       messages: { role: string; content: string }[];
       sessionId?: string;
+      apiKey?: string;
     };
 
     // Validate the last (user) message
@@ -34,8 +35,8 @@ export async function POST(
       return new Response("角色不存在", { status: 404 });
     }
 
-    // Route to model
-    const { model } = routeModel(agent.modelConfig);
+    // Route to model (user's API key takes priority over server key)
+    const { model } = routeModel(agent.modelConfig, apiKey);
     const systemMessage = agent.systemPrompt;
 
     // Save user message to DB (if sessionId provided)
