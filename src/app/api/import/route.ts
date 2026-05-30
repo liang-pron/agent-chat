@@ -57,7 +57,11 @@ async function handleFileUpload(req: NextRequest) {
 
 async function handleUrlImport(req: NextRequest) {
   const body = await req.json();
-  const { githubUrl } = body as { githubUrl?: string };
+  const { githubUrl, merge, selectedPaths } = body as {
+    githubUrl?: string;
+    merge?: boolean;
+    selectedPaths?: string[];
+  };
 
   if (!githubUrl) {
     return NextResponse.json({ error: "请提供链接" }, { status: 400 });
@@ -69,7 +73,7 @@ async function handleUrlImport(req: NextRequest) {
   }
 
   // GitHub repo URL
-  return handleGithubImport(githubUrl);
+  return handleGithubImport(githubUrl, merge, selectedPaths);
 }
 
 async function handleDirectUrl(url: string) {
@@ -105,33 +109,84 @@ async function handleDirectUrl(url: string) {
   }
 }
 
-async function handleGithubImport(githubUrl: string) {
-  // First, check if the repo has multiple SKILL.md files
-  try {
-    const parsed = validateGitHubUrl(githubUrl);
-    if (!("error" in parsed)) {
-      const skillFiles = await findAllSkillMdFiles(parsed.owner, parsed.repo);
+async function handleGithubImport(
+  githubUrl: string,
+  merge?: boolean,
+  selectedPaths?: string[]
+) {
+  const parsed = validateGitHubUrl(githubUrl);
+  if ("error" in parsed) return handleSingleGithubImport(githubUrl);
 
-      // If multiple SKILL.md found, do bulk import
-      if (skillFiles.length > 1) {
-        return handleBulkGithubImport(parsed.owner, parsed.repo, githubUrl, skillFiles);
-      }
+  try {
+    const skillFiles = await findAllSkillMdFiles(parsed.owner, parsed.repo);
+    if (skillFiles.length > 1) {
+      return handleBulkGithubImport(parsed.owner, parsed.repo, githubUrl, skillFiles, merge, selectedPaths);
     }
-  } catch {
-    // Fall through to single import
-  }
+  } catch { /* fall through */ }
 
   return handleSingleGithubImport(githubUrl);
 }
 
 async function handleBulkGithubImport(
   owner: string, repo: string, baseUrl: string,
-  skillFiles: { path: string; url: string }[]
+  skillFiles: { path: string; url: string }[],
+  merge = false,
+  selectedPaths?: string[]
 ) {
+  // Filter to selected files if specified
+  const files = selectedPaths
+    ? skillFiles.filter((f) => selectedPaths.includes(f.path))
+    : skillFiles;
+
+  if (files.length === 0) {
+    return NextResponse.json({ error: "未选择任何文件" }, { status: 400 });
+  }
+
+  // ─── Merge mode: combine all into one agent ───
+  if (merge) {
+    const parsedList: { name: string; description: string; systemPrompt: string; category?: string }[] = [];
+    for (const file of files) {
+      const p = await fetchAndParseSkillMd(owner, repo, file.path);
+      if (p) parsedList.push(p);
+    }
+
+    if (parsedList.length === 0) {
+      return NextResponse.json({ error: "无法解析任何 SKILL.md" }, { status: 400 });
+    }
+
+    const mergedName = parsedList.map((p) => p.name).join(" · ");
+    const mergedDesc = parsedList.map((p) => `${p.name}: ${p.description || "—"}`).join("；");
+    const mergedPrompt = parsedList
+      .map((p, i) => `## 角色 ${i + 1}: ${p.name}\n\n${p.systemPrompt}`)
+      .join("\n\n---\n\n");
+
+    const category = await classifyAgent(mergedName, mergedDesc, mergedPrompt);
+    const modelConfig = { provider: "deepseek", model: "deepseek-chat", apiEndpoint: "https://api.deepseek.com/v1", apiKeyEnv: "DEEPSEEK_API_KEY" };
+
+    const agent = await registerAgent({
+      name: mergedName,
+      description: mergedDesc,
+      category,
+      githubUrl: baseUrl,
+      systemPrompt: mergedPrompt,
+      modelConfig: JSON.stringify(modelConfig),
+    });
+
+    return NextResponse.json({
+      bulk: true,
+      merge: true,
+      total: files.length,
+      okCount: 1,
+      results: [{ path: "合并导入", name: mergedName, status: "ok" }],
+      agents: [{ id: agent.id, name: agent.name }],
+    }, { status: 201 });
+  }
+
+  // ─── Separate mode: one agent per SKILL.md ───
   const results: { path: string; name: string; status: "ok" | "skip" | "fail"; reason?: string }[] = [];
   const imported: { id: string; name: string }[] = [];
 
-  for (const file of skillFiles) {
+  for (const file of files) {
     try {
       const parsed = await fetchAndParseSkillMd(owner, repo, file.path);
       if (!parsed) {
@@ -150,11 +205,8 @@ async function handleBulkGithubImport(
       const modelConfig = { provider: "deepseek", model: "deepseek-chat", apiEndpoint: "https://api.deepseek.com/v1", apiKeyEnv: "DEEPSEEK_API_KEY" };
 
       const agent = await registerAgent({
-        name: parsed.name,
-        description: parsed.description,
-        category,
-        githubUrl: repoUrl,
-        systemPrompt: parsed.systemPrompt,
+        name: parsed.name, description: parsed.description, category,
+        githubUrl: repoUrl, systemPrompt: parsed.systemPrompt,
         modelConfig: JSON.stringify(modelConfig),
       });
 
@@ -165,14 +217,12 @@ async function handleBulkGithubImport(
     }
   }
 
-  const okCount = results.filter((r) => r.status === "ok").length;
-  const skipCount = results.filter((r) => r.status === "skip").length;
-  const failCount = results.filter((r) => r.status === "fail").length;
-
   return NextResponse.json({
     bulk: true,
-    total: skillFiles.length,
-    okCount, skipCount, failCount,
+    total: files.length,
+    okCount: results.filter((r) => r.status === "ok").length,
+    skipCount: results.filter((r) => r.status === "skip").length,
+    failCount: results.filter((r) => r.status === "fail").length,
     results,
     agents: imported,
   }, { status: 201 });
