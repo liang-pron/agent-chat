@@ -48,7 +48,7 @@ export function AgentCard({
 
   return (
     <>
-      <Card className="group h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 hover:border-primary/30 relative">
+      <Card className="group h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 hover:border-emerald-500/40 relative rounded-2xl">
         {/* Click area → chat */}
         <Link href={`/chat/${agent.id}`} className="block h-full">
           <CardContent className="p-5 flex flex-col gap-3">

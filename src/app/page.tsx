@@ -38,7 +38,7 @@ export default function HomePage() {
       {/* Hero */}
       <div className="text-center space-y-4 py-8">
         <h1 className="text-4xl font-bold tracking-tight">
-          <Bot className="w-12 h-12 mx-auto mb-4 text-primary" />
+          <Bot className="w-12 h-12 mx-auto mb-4 text-emerald-600" />
           AI 角色扮演广场
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

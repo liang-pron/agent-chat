@@ -14,10 +14,7 @@ const CATEGORIES = [
   { key: "其他", label: "📦 其他" },
 ];
 
-interface CategoryFilterProps {
-  active: string;
-  onChange: (category: string) => void;
-}
+interface CategoryFilterProps { active: string; onChange: (c: string) => void; }
 
 export function CategoryFilter({ active, onChange }: CategoryFilterProps) {
   return (
@@ -29,7 +26,7 @@ export function CategoryFilter({ active, onChange }: CategoryFilterProps) {
           className={cn(
             "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
             active === cat.key
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+              ? "bg-emerald-600 text-white shadow-md shadow-emerald-200"
               : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
           )}
         >
