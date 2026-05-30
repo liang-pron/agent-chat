@@ -18,7 +18,7 @@ import { Loader2, Upload } from "lucide-react";
 interface AgentEditDialogProps {
   open: boolean;
   onClose: () => void;
-  agent: { id: string; name: string; avatarUrl: string | null; category: string };
+  agent: { id: string; name: string; avatarUrl: string | null; category: string; document?: string };
   onSaved: () => void;
 }
 
@@ -26,6 +26,7 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
   const [name, setName] = useState(agent.name);
   const [avatarUrl, setAvatarUrl] = useState(agent.avatarUrl || "");
   const [category, setCategory] = useState(agent.category);
+  const [document, setDocument] = useState(agent.document || "");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +78,7 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
           name: name.trim(),
           avatarUrl: avatarUrl.trim() || null,
           category,
+          document,
         }),
       });
 
@@ -99,6 +101,7 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
     if (isOpen) {
       setName(agent.name);
       setCategory(agent.category);
+      setDocument(agent.document || "");
       setAvatarUrl(agent.avatarUrl || "");
       setError(null);
     } else {
@@ -159,6 +162,22 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Document */}
+          <div className="space-y-1.5">
+            <label htmlFor="edit-doc" className="text-sm font-medium">文档介绍（Markdown）</label>
+            <textarea
+              id="edit-doc"
+              value={document}
+              onChange={(e) => setDocument(e.target.value)}
+              placeholder="## 简介&#10;&#10;这个角色的详细说明...&#10;&#10;## 使用场景&#10;&#10;- 场景1&#10;- 场景2"
+              rows={5}
+              className="w-full min-h-[100px] rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono resize-y"
+            />
+            <p className="text-xs text-muted-foreground">
+              支持 Markdown 格式，将在角色页面的「文档」标签中展示
+            </p>
           </div>
 
           {/* Avatar URL */}

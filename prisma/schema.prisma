@@ -16,6 +16,7 @@ model Agent {
   githubUrl    String
   systemPrompt String
   modelConfig  String
+  document     String        @default("")
   createdAt    DateTime      @default(now())
   messages     ChatMessage[]
   sessions     Session[]
