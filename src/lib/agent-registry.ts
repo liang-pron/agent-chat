@@ -44,3 +44,16 @@ export async function getCategories(): Promise<string[]> {
   });
   return result.map((r: { category: string }) => r.category);
 }
+
+/** Update an agent's name and/or avatar */
+export async function updateAgent(
+  id: string,
+  data: { name?: string; avatarUrl?: string | null }
+): Promise<Agent> {
+  return prisma.agent.update({ where: { id }, data });
+}
+
+/** Delete an agent and all its chat messages */
+export async function deleteAgent(id: string): Promise<void> {
+  await prisma.agent.delete({ where: { id } });
+}
