@@ -2,20 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { importFromGitHub } from "@/lib/github-import";
 import { classifyAgent } from "@/lib/classifier";
 import { registerAgent, isRepoImported } from "@/lib/agent-registry";
-import { checkImportRateLimit } from "@/lib/validators";
 
 /** POST /api/import — import an agent from a GitHub repo */
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
-    if (!checkImportRateLimit(ip)) {
-      return NextResponse.json(
-        { error: "导入请求太频繁，请一小时后重试" },
-        { status: 429 }
-      );
-    }
-
     // Parse request
     const body = await req.json();
     const { githubUrl } = body as { githubUrl?: string };
