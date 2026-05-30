@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Settings, Key, Trash2, Loader2 } from "lucide-react";
 
 interface Message {
@@ -278,13 +280,45 @@ export function ChatInterface({
                 )}
                 <div
                   className={cn(
-                    "rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed whitespace-pre-wrap",
+                    "rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed",
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
-                      : "bg-secondary text-secondary-foreground rounded-bl-md"
+                      : "bg-secondary text-secondary-foreground rounded-bl-md prose prose-sm dark:prose-invert max-w-none"
                   )}
                 >
-                  {msg.content}
+                  {msg.role === "assistant" ? (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        pre: ({ children }) => (
+                          <pre className="bg-muted/50 rounded-lg p-3 my-2 overflow-x-auto text-xs">{children}</pre>
+                        ),
+                        code: ({ className, children, ...props }) => {
+                          const isInline = !className;
+                          return isInline ? (
+                            <code className="bg-muted/50 rounded px-1 py-0.5 text-xs" {...props}>{children}</code>
+                          ) : (
+                            <code className={className} {...props}>{children}</code>
+                          );
+                        },
+                        table: ({ children }) => (
+                          <div className="overflow-x-auto my-2">
+                            <table className="w-full border-collapse text-xs">{children}</table>
+                          </div>
+                        ),
+                        th: ({ children }) => (
+                          <th className="border px-2 py-1 bg-muted/30 text-left font-medium">{children}</th>
+                        ),
+                        td: ({ children }) => (
+                          <td className="border px-2 py-1">{children}</td>
+                        ),
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.content
+                  )}
                 </div>
                 {msg.role === "user" && (
                   <Avatar className="h-8 w-8 shrink-0 mt-1">
