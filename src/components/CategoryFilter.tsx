@@ -1,17 +1,16 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { CATEGORIES } from "@/lib/constants";
 
-const CATEGORIES = [
+const EMOJI: Record<string, string> = {
+  教育: "🎓", 科技: "💻", 娱乐: "🎭", 商业: "💼",
+  生活方式: "🌿", 游戏: "🎮", 其他: "📦",
+};
+
+const FILTER_ITEMS = [
   { key: "全部", label: "全部" },
-  { key: "教育", label: "🎓 教育" },
-  { key: "科技", label: "💻 科技" },
-  { key: "娱乐", label: "🎭 娱乐" },
-  { key: "商业", label: "💼 商业" },
-  { key: "生活方式", label: "🌿 生活方式" },
-  { key: "游戏", label: "🎮 游戏" },
-  { key: "其他", label: "📦 其他" },
+  ...CATEGORIES.map((c) => ({ key: c, label: `${EMOJI[c] || ""} ${c}` })),
 ];
 
 interface CategoryFilterProps { active: string; onChange: (c: string) => void; }
@@ -19,7 +18,7 @@ interface CategoryFilterProps { active: string; onChange: (c: string) => void; }
 export function CategoryFilter({ active, onChange }: CategoryFilterProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      {CATEGORIES.map((cat) => (
+      {FILTER_ITEMS.map((cat) => (
         <button
           key={cat.key}
           onClick={() => onChange(cat.key)}

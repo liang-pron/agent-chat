@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { importFromGitHub, parseSkillMdContent, findAllSkillMdFiles, fetchAndParseSkillMd, fetchRepoReadme } from "@/lib/github-import";
 import { validateGitHubUrl } from "@/lib/validators";
+import { DEFAULT_MODEL_CONFIG } from "@/lib/constants";
 import { classifyAgent } from "@/lib/classifier";
 import { registerAgent, isRepoImported } from "@/lib/agent-registry";
 
@@ -43,7 +44,7 @@ async function handleFileUpload(req: NextRequest) {
 
   const { name, description, systemPrompt, category: parsedCategory } = parsed;
   const category = parsedCategory || await classifyAgent(name, description, systemPrompt);
-  const modelConfig = { provider: "deepseek", model: "deepseek-chat", apiEndpoint: "https://api.deepseek.com/v1", apiKeyEnv: "DEEPSEEK_API_KEY" };
+  const modelConfig = { ...DEFAULT_MODEL_CONFIG };
 
   const agent = await registerAgent({
     name, description, category,
@@ -93,7 +94,7 @@ async function handleDirectUrl(url: string) {
 
     const { name, description, systemPrompt, category: parsedCategory } = parsed;
     const category = parsedCategory || await classifyAgent(name, description, systemPrompt);
-    const modelConfig = { provider: "deepseek", model: "deepseek-chat", apiEndpoint: "https://api.deepseek.com/v1", apiKeyEnv: "DEEPSEEK_API_KEY" };
+    const modelConfig = { ...DEFAULT_MODEL_CONFIG };
 
     const agent = await registerAgent({
       name, description, category,
@@ -161,7 +162,7 @@ async function handleBulkGithubImport(
       .join("\n\n---\n\n");
 
     const category = await classifyAgent(mergedName, mergedDesc, mergedPrompt);
-    const modelConfig = { provider: "deepseek", model: "deepseek-chat", apiEndpoint: "https://api.deepseek.com/v1", apiKeyEnv: "DEEPSEEK_API_KEY" };
+    const modelConfig = { ...DEFAULT_MODEL_CONFIG };
 
     const agent = await registerAgent({
       name: mergedName,
@@ -202,7 +203,7 @@ async function handleBulkGithubImport(
       }
 
       const category = parsed.category || await classifyAgent(parsed.name, parsed.description, parsed.systemPrompt);
-      const modelConfig = { provider: "deepseek", model: "deepseek-chat", apiEndpoint: "https://api.deepseek.com/v1", apiKeyEnv: "DEEPSEEK_API_KEY" };
+      const modelConfig = { ...DEFAULT_MODEL_CONFIG };
 
       const agent = await registerAgent({
         name: parsed.name, description: parsed.description, category,

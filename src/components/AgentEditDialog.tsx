@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { CATEGORIES } from "@/lib/constants";
 import { Loader2, Upload, Plus, ChevronDown } from "lucide-react";
 
 interface AgentEditDialogProps {
@@ -35,7 +36,6 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const CATEGORIES = ["教育", "科技", "娱乐", "商业", "生活方式", "游戏", "其他"];
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -1,18 +1,9 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateText } from "ai";
 
-/** Valid categories for agent classification */
-export const VALID_CATEGORIES = [
-  "教育",
-  "科技",
-  "娱乐",
-  "商业",
-  "生活方式",
-  "游戏",
-  "其他",
-] as const;
-
-export type Category = (typeof VALID_CATEGORIES)[number];
+import { CATEGORIES, type Category } from "@/lib/constants";
+export const VALID_CATEGORIES = CATEGORIES;
+export type { Category };
 
 /** Keyword-to-category mapping for fallback classification */
 const KEYWORD_MAP: Record<string, Category> = {

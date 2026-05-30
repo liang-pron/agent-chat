@@ -1,4 +1,5 @@
 import { validateGitHubUrl } from "@/lib/validators";
+import { DEFAULT_MODEL_CONFIG } from "@/lib/constants";
 import YAML from "yaml";
 
 const GITHUB_API_BASE = "https://api.github.com";
@@ -312,12 +313,7 @@ function buildFromSkillMd(skill: SkillMd): {
     description: skill.description,
     systemPrompt: skill.body,
     category: skill.category,
-    modelConfig: {
-      provider: "deepseek",
-      model: "deepseek-chat",
-      apiEndpoint: "https://api.deepseek.com/v1",
-      apiKeyEnv: "DEEPSEEK_API_KEY",
-    },
+    modelConfig: { ...DEFAULT_MODEL_CONFIG },
   };
 }
 
