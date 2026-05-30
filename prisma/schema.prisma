@@ -1,0 +1,34 @@
+// Prisma schema for AgentPlaza
+// SQLite for MVP, switch to PostgreSQL by changing provider and connection string
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Agent {
+  id           String        @id @default(cuid())
+  name         String
+  description  String
+  category     String        // 教育 | 科技 | 娱乐 | 商业 | 生活方式 | 游戏 | 其他
+  avatarUrl    String?
+  githubUrl    String        // 来源 GitHub repo URL
+  systemPrompt String        // 角色的 system prompt
+  modelConfig  String        // JSON string: { provider, model, apiEndpoint, apiKeyEnv }
+  createdAt    DateTime      @default(now())
+  messages     ChatMessage[]
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  agentId   String
+  sessionId String   // 浏览器会话标识（sessionStorage 生成）
+  role      String   // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+}
