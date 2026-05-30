@@ -239,7 +239,7 @@ export function ChatInterface({
   const initials = agentName.slice(0, 2);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Chat header */}
       <div className="flex items-center gap-3 p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Avatar className="h-10 w-10">
@@ -474,7 +474,7 @@ export function ChatInterface({
       {/* Input area */}
       <form
         onSubmit={handleSubmit}
-        className="p-4 border-t bg-background/95 backdrop-blur"
+        className="shrink-0 p-4 border-t bg-background/95 backdrop-blur"
       >
         <div className="flex gap-3 max-w-3xl mx-auto">
           <Textarea
