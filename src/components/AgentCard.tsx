@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { AgentEditDialog } from "@/components/AgentEditDialog";
-import type { AgentWithCount } from "@/lib/agent-registry";
+import type { Agent } from "@/generated/prisma/client";
 
 const CATEGORY_COLORS: Record<string, string> = {
   教育: "bg-blue-100 text-blue-800",
@@ -24,7 +24,7 @@ export function AgentCard({
   agent,
   onUpdate,
 }: {
-  agent: AgentWithCount;
+  agent: Agent;
   onUpdate: () => void;
 }) {
   const [showEdit, setShowEdit] = useState(false);
@@ -70,11 +70,6 @@ export function AgentCard({
                   >
                     {agent.category}
                   </Badge>
-                  {agent._count.messages > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {agent._count.messages} 条
-                    </span>
-                  )}
                 </div>
               </div>
             </div>

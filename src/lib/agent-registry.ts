@@ -1,14 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import type { Agent } from "@/generated/prisma/client";
 
-export type AgentWithCount = Agent & { _count: { messages: number } };
-
 /** List all agents, optionally filtered by category */
-export async function listAgents(category?: string): Promise<AgentWithCount[]> {
+export async function listAgents(category?: string): Promise<Agent[]> {
   return prisma.agent.findMany({
     where: category && category !== "全部" ? { category } : undefined,
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { messages: true } } },
   });
 }
 

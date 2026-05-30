@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { AgentCard } from "@/components/AgentCard";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AgentWithCount } from "@/lib/agent-registry";
+import type { Agent } from "@/generated/prisma/client";
 import { Bot } from "lucide-react";
 
 export default function HomePage() {
-  const [agents, setAgents] = useState<AgentWithCount[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [firstLoad, setFirstLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState("全部");
