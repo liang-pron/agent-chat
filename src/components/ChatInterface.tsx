@@ -239,7 +239,7 @@ export function ChatInterface({
   const initials = agentName.slice(0, 2);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div className="flex flex-col h-full">
       {/* Chat header */}
       <div className="flex items-center gap-3 p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Avatar className="h-10 w-10">

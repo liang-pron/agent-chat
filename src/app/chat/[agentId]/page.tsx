@@ -41,7 +41,7 @@ export default function ChatPage() {
   }, [agentId]);
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] -mx-4 -my-6 -mr-6">
+    <div className="flex h-[calc(100vh-3.5rem)] -mx-4 -my-6 -mr-6">
       {/* Left sidebar — toggle + sub-tabs */}
       <div className="flex border-r bg-background/50 -ml-4">
         {/* Toggle column */}
