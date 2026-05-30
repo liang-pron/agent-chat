@@ -57,3 +57,30 @@ export async function updateAgent(
 export async function deleteAgent(id: string): Promise<void> {
   await prisma.agent.delete({ where: { id } });
 }
+
+/** Get messages for a specific agent + session */
+export async function getMessages(agentId: string, sessionId: string) {
+  return prisma.chatMessage.findMany({
+    where: { agentId, sessionId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, role: true, content: true },
+  });
+}
+
+/** Delete all messages for a specific session */
+export async function deleteMessages(agentId: string, sessionId: string) {
+  await prisma.chatMessage.deleteMany({
+    where: { agentId, sessionId },
+  });
+}
+
+/** Get all sessions with message counts for an agent (for conversation list) */
+export async function getSessions(agentId: string) {
+  return prisma.chatMessage.groupBy({
+    by: ["sessionId"],
+    where: { agentId },
+    _count: { id: true },
+    _max: { createdAt: true },
+    orderBy: { _max: { createdAt: "desc" } },
+  });
+}

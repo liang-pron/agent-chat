@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Settings, Key } from "lucide-react";
+import { Settings, Key, Trash2, Loader2 } from "lucide-react";
 
 interface Message {
   id: string;
@@ -43,6 +43,37 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
     }
     return sid;
   });
+
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Load existing messages from DB on mount
+  useEffect(() => {
+    if (!sessionId) return;
+    fetch(`/api/agents/${agentId}/messages?sessionId=${sessionId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.messages?.length > 0) {
+          setMessages(data.messages);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setHistoryLoaded(true));
+  }, [agentId, sessionId]);
+
+  const handleClearHistory = async () => {
+    setDeleting(true);
+    try {
+      await fetch(`/api/agents/${agentId}/messages?sessionId=${sessionId}`, {
+        method: "DELETE",
+      });
+      setMessages([]);
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -140,6 +171,20 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
           <p className="text-xs text-muted-foreground">AI 角色扮演</p>
         </div>
         <div className="flex-1" />
+        {messages.length > 0 && (
+          <button
+            onClick={handleClearHistory}
+            disabled={deleting}
+            className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+            title="清除对话记录"
+          >
+            {deleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </button>
+        )}
         <button
           onClick={() => setShowSettings(!showSettings)}
           className={cn(
