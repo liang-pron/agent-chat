@@ -184,7 +184,7 @@ export function ChatInterface({
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       {/* Chat header */}
-      <div className="flex items-center gap-3 p-4 glass border-b-0">
+      <div className="flex items-center gap-3 p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Avatar className="h-10 w-10">
           <AvatarImage src={agentAvatar || undefined} />
           <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-sm font-bold">
@@ -306,13 +306,9 @@ export function ChatInterface({
                   className={cn(
                     "rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed",
                     msg.role === "user"
-                      ? "rounded-br-md"
-                      : "rounded-bl-md prose prose-sm max-w-none"
+                      ? "bg-primary text-primary-foreground rounded-br-md"
+                      : "bg-secondary text-secondary-foreground rounded-bl-md prose prose-sm dark:prose-invert max-w-none"
                   )}
-                  style={msg.role === "user"
-                    ? { background: "linear-gradient(135deg, #006994, #004466)", color: "#e8f4ff" }
-                    : { background: "rgba(15,20,41,0.8)", color: "#e8eaf0", border: "1px solid rgba(30,39,86,0.5)", backdropFilter: "blur(8px)" }
-                  }
                 >
                   {msg.role === "assistant" ? (
                     <ReactMarkdown
@@ -397,7 +393,10 @@ export function ChatInterface({
       </div>
 
       {/* Input area */}
-      <form onSubmit={handleSubmit} className="p-4 glass border-t-0">
+      <form
+        onSubmit={handleSubmit}
+        className="p-4 border-t bg-background/95 backdrop-blur"
+      >
         <div className="flex gap-3 max-w-3xl mx-auto">
           <Textarea
             value={input}

@@ -2,42 +2,43 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Design: Neon Night Plaza — dark neon theme */
+@custom-variant dark (&:is(.dark *));
+
 @theme inline {
-  --color-background: var(--bg-deep);
-  --color-foreground: var(--text-primary);
-  --font-sans: var(--font-dm-sans);
-  --font-mono: var(--font-jetbrains-mono);
-  --font-heading: var(--font-orbitron);
-  --color-sidebar-ring: var(--neon-cyan);
-  --color-sidebar-border: var(--border-subtle);
-  --color-sidebar-accent-foreground: var(--neon-cyan);
-  --color-sidebar-accent: var(--bg-elevated);
-  --color-sidebar-primary-foreground: var(--bg-deep);
-  --color-sidebar-primary: var(--neon-cyan);
-  --color-sidebar-foreground: var(--text-secondary);
-  --color-sidebar: var(--bg-surface);
-  --color-chart-5: var(--neon-pink);
-  --color-chart-4: var(--neon-amber);
-  --color-chart-3: var(--neon-green);
-  --color-chart-2: var(--neon-cyan);
-  --color-chart-1: var(--neon-pink);
-  --color-ring: var(--neon-cyan);
-  --color-input: var(--bg-surface);
-  --color-border: var(--border-subtle);
-  --color-destructive: var(--neon-pink);
-  --color-accent-foreground: var(--neon-cyan);
-  --color-accent: var(--bg-elevated);
-  --color-muted-foreground: var(--text-muted);
-  --color-muted: var(--bg-surface);
-  --color-secondary-foreground: var(--text-secondary);
-  --color-secondary: var(--bg-surface);
-  --color-primary-foreground: var(--bg-deep);
-  --color-primary: var(--neon-cyan);
-  --color-popover-foreground: var(--text-primary);
-  --color-popover: var(--bg-elevated);
-  --color-card-foreground: var(--text-primary);
-  --color-card: var(--bg-surface);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,68 +49,82 @@
 }
 
 :root {
-  /* ─── Neon Night Plaza Palette ─── */
-  --bg-deep: #070b1a;
-  --bg-surface: #0f1429;
-  --bg-elevated: #161d3b;
-  --neon-cyan: #00e5ff;
-  --neon-pink: #ff2d95;
-  --neon-amber: #ffb74d;
-  --neon-green: #00e676;
-  --text-primary: #e8eaf0;
-  --text-secondary: #8890b0;
-  --text-muted: #4a5078;
-  --border-subtle: #1e2756;
-  --radius: 0.75rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
   * {
-    border-color: var(--border-subtle);
-    outline-color: var(--neon-cyan);
+    @apply border-border outline-ring/50;
   }
   body {
-    background-color: var(--bg-deep);
-    color: var(--text-primary);
-    font-family: "DM Sans", system-ui, sans-serif;
+    @apply bg-background text-foreground;
   }
-  html { font-family: "DM Sans", system-ui, sans-serif; }
-}
-
-/* ─── Neon glow utilities ─── */
-@utility glow-cyan {
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15), 0 0 30px rgba(0, 229, 255, 0.05);
-}
-@utility glow-pink {
-  box-shadow: 0 0 15px rgba(255, 45, 149, 0.15), 0 0 30px rgba(255, 45, 149, 0.05);
-}
-
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-deep); }
-::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-/* ─── Animations ─── */
-@keyframes neon-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-@keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes glow-breathe {
-  0%, 100% { box-shadow: 0 0 5px rgba(0, 229, 255, 0.1); }
-  50% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
-}
-.animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
-.animate-glow-breathe { animation: glow-breathe 3s ease-in-out infinite; }
-.animate-neon-pulse { animation: neon-pulse 2s ease-in-out infinite; }
-
-/* ─── Glass surface ─── */
-.glass {
-  background: rgba(15, 20, 41, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(30, 39, 86, 0.6);
+  html {
+    @apply font-sans;
+  }
 }
