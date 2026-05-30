@@ -31,11 +31,11 @@ export function FilePanel() {
     try {
       const res = await fetch(`/api/fs?workspace=${encodeURIComponent(workspace)}&path=${encodeURIComponent(dirPath)}`, { headers: apiHeaders() });
       const data = await res.json();
-      if (!res.ok) { setError(data.error); setFiles([]); return; }
+      if (!res.ok) { setError(data.error || `HTTP ${res.status}`); setFiles([]); return; }
       setFiles(data.files || []);
       setCurrentPath(dirPath);
       setError(null);
-    } catch { setError("加载失败"); }
+    } catch (e) { setError("加载失败: " + (e as Error).message); }
   }, [workspace]);
 
   useEffect(() => { if (workspace) { fetchFiles(); } else { setError(null); } }, [fetchFiles, workspace]);
