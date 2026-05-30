@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Settings, Key, Trash2, Loader2 } from "lucide-react";
+import { Settings, Key, Trash2, Loader2, ArrowDown } from "lucide-react";
 
 interface Message {
   id: string;
@@ -37,6 +37,8 @@ export function ChatInterface({
   const [error, setError] = useState<string | null>(null);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState(() => {
@@ -88,15 +90,31 @@ export function ChatInterface({
     }
   };
 
-  const scrollToBottom = useCallback(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+  const isNearBottom = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   }, []);
 
+  const scrollToBottom = useCallback((force = false) => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    if (force || isNearBottom()) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [isNearBottom]);
+
+  // Detect manual scroll
+  const handleScroll = useCallback(() => {
+    setUserScrolledUp(!isNearBottom());
+  }, [isNearBottom]);
+
+  // Auto-scroll on new messages (only if user hasn't scrolled up)
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    if (!userScrolledUp) {
+      scrollToBottom(true);
+    }
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +130,7 @@ export function ChatInterface({
     setInput("");
     setError(null);
     setIsLoading(true);
+    setUserScrolledUp(false); // reset scroll on new message
 
     const apiMessages = [...messages, userMsg].map((m) => ({
       role: m.role,
@@ -242,7 +261,12 @@ export function ChatInterface({
       )}
 
       {/* Messages area */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <div className="flex-1 relative">
+      <ScrollArea
+        className="h-full p-4"
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+      >
         <div className="space-y-6 max-w-3xl mx-auto">
           {!historyLoaded ? (
             <div className="flex justify-center py-20">
@@ -355,6 +379,18 @@ export function ChatInterface({
           )}
         </div>
       </ScrollArea>
+
+      {/* Jump to bottom button */}
+      {userScrolledUp && (
+        <button
+          onClick={() => { scrollToBottom(true); setUserScrolledUp(false); }}
+          className="absolute bottom-4 right-4 p-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all z-10"
+          title="回到底部"
+        >
+          <ArrowDown className="w-4 h-4" />
+        </button>
+      )}
+      </div>
 
       {/* Input area */}
       <form
