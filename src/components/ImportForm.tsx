@@ -65,7 +65,7 @@ export function ImportForm() {
       <CardHeader>
         <CardTitle className="text-2xl">导入角色 Agent</CardTitle>
         <CardDescription>
-          粘贴包含 <code className="px-1.5 py-0.5 bg-secondary rounded text-sm">agent.json</code> 配置文件的
+          粘贴包含 <code className="px-1.5 py-0.5 bg-secondary rounded text-sm">SKILL.md</code> 或 <code className="px-1.5 py-0.5 bg-secondary rounded text-sm">agent.json</code> 的
           GitHub 仓库链接，一键导入到角色广场。
         </CardDescription>
       </CardHeader>
@@ -145,7 +145,7 @@ export function ImportForm() {
                   模板仓库 <ExternalLink className="w-3 h-3 inline" />
                 </a>
               </li>
-              <li>编辑 <code className="px-1 bg-secondary rounded">agent.json</code> 填入角色信息</li>
+              <li>编辑 <code className="px-1 bg-secondary rounded">SKILL.md</code> 填入角色人设和对话规则</li>
               <li>粘贴你 fork 的仓库链接到这里</li>
             </ol>
           </div>

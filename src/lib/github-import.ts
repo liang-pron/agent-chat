@@ -1,4 +1,5 @@
 import { validateGitHubUrl } from "@/lib/validators";
+import YAML from "yaml";
 
 const GITHUB_API_BASE = "https://api.github.com";
 
@@ -13,6 +14,19 @@ interface AgentJson {
     apiEndpoint?: string;
   };
   avatarUrl?: string;
+}
+
+interface SkillMd {
+  name: string;
+  description: string;
+  body: string;
+  metadata?: Record<string, string>;
+  category?: string;
+  model?: {
+    provider?: string;
+    model?: string;
+    apiEndpoint?: string;
+  };
 }
 
 interface ImportResult {
@@ -36,12 +50,22 @@ interface ImportResult {
 interface ImportError {
   success: false;
   error: string;
-  code: "INVALID_URL" | "REPO_NOT_FOUND" | "RATE_LIMITED" | "NO_AGENT_JSON" | "INVALID_JSON" | "MISSING_FIELDS" | "FETCH_ERROR";
+  code:
+    | "INVALID_URL"
+    | "REPO_NOT_FOUND"
+    | "RATE_LIMITED"
+    | "NO_SKILL_FILE"
+    | "INVALID_SKILL"
+    | "MISSING_FIELDS"
+    | "FETCH_ERROR";
 }
 
 /**
  * Import an agent from a GitHub repo.
- * Looks for agent.json in the repo root and parses the agent config.
+ *
+ * Priority order:
+ *   1. SKILL.md — the standard agent skill format (YAML frontmatter + Markdown body)
+ *   2. agent.json — simple JSON config (backward compatible)
  */
 export async function importFromGitHub(
   githubUrl: string
@@ -55,45 +79,43 @@ export async function importFromGitHub(
   const { owner, repo } = parsed;
   const repoUrl = `https://github.com/${owner}/${repo}`;
 
-  // 2. Fetch agent.json from GitHub
-  let agentJson: AgentJson;
+  // 2. Try SKILL.md first, then agent.json
+  let skillData: { name: string; description: string; systemPrompt: string; category?: string; modelConfig: { provider: string; model: string; apiEndpoint: string; apiKeyEnv: string } };
+  let errorCode: ImportError["code"] = "NO_SKILL_FILE";
+
   try {
-    agentJson = await fetchAgentJson(owner, repo);
+    // Try SKILL.md first
+    const skill = await fetchSkillMd(owner, repo);
+    skillData = buildFromSkillMd(skill);
   } catch (err: unknown) {
     const e = err as { code?: string; status?: number };
-    if (e.code === "NOT_FOUND" || e.status === 404) {
-      return {
-        success: false,
-        error: `找不到仓库 ${owner}/${repo}，请检查链接是否正确`,
-        code: "REPO_NOT_FOUND",
-      };
+
+    // If SKILL.md not found, try agent.json
+    if (e.code === "NOT_FOUND" || e.code === "NO_SKILL_FILE") {
+      try {
+        const json = await fetchAgentJson(owner, repo);
+        skillData = buildFromAgentJson(json);
+      } catch (err2: unknown) {
+        const e2 = err2 as { code?: string; status?: number };
+        if (e2.code === "NO_AGENT_JSON") {
+          return {
+            success: false,
+            error: "该仓库未找到 SKILL.md 或 agent.json。请确保仓库根目录下有符合规范的配置文件。",
+            code: "NO_SKILL_FILE",
+          };
+        }
+        return handleFetchError(e2, owner, repo);
+      }
+    } else {
+      return handleFetchError(e, owner, repo);
     }
-    if (e.code === "RATE_LIMITED" || e.status === 403) {
-      return {
-        success: false,
-        error: "GitHub API 请求太频繁，请稍后再试",
-        code: "RATE_LIMITED",
-      };
-    }
-    if (e.code === "NO_AGENT_JSON") {
-      return {
-        success: false,
-        error: `该仓库未包含 agent.json 配置文件。请确保仓库根目录下有符合规范的 agent.json 文件。`,
-        code: "NO_AGENT_JSON",
-      };
-    }
-    return {
-      success: false,
-      error: `获取仓库信息失败：${(e as Error).message || "未知错误"}`,
-      code: "FETCH_ERROR",
-    };
   }
 
   // 3. Validate required fields
-  if (!agentJson.name || !agentJson.systemPrompt) {
+  if (!skillData.name || !skillData.systemPrompt) {
     const missing: string[] = [];
-    if (!agentJson.name) missing.push("name");
-    if (!agentJson.systemPrompt) missing.push("systemPrompt");
+    if (!skillData.name) missing.push("name");
+    if (!skillData.systemPrompt) missing.push("systemPrompt");
     return {
       success: false,
       error: `配置文件缺少必填字段：${missing.join("、")}`,
@@ -101,43 +123,155 @@ export async function importFromGitHub(
     };
   }
 
-  // 4. Build model config
-  const modelConfig = {
-    provider: agentJson.model?.provider || "deepseek",
-    model: agentJson.model?.model || "deepseek-chat",
-    apiEndpoint:
-      agentJson.model?.apiEndpoint || "https://api.deepseek.com/v1",
-    apiKeyEnv:
-      agentJson.model?.provider === "custom" ? "CUSTOM_API_KEY" : "DEEPSEEK_API_KEY",
-  };
-
   return {
     success: true,
     data: {
-      name: agentJson.name.trim(),
-      description: (agentJson.description || "").trim(),
-      systemPrompt: agentJson.systemPrompt.trim(),
+      name: skillData.name.trim(),
+      description: (skillData.description || "").trim(),
+      systemPrompt: skillData.systemPrompt.trim(),
       githubUrl: repoUrl,
-      category: agentJson.category,
-      modelConfig,
-      avatarUrl: agentJson.avatarUrl,
+      category: skillData.category,
+      modelConfig: skillData.modelConfig,
     },
   };
 }
 
-/** Fetch and parse agent.json from a GitHub repo */
+function handleFetchError(
+  err: { code?: string; status?: number },
+  owner: string,
+  repo: string
+): ImportError {
+  if (err.code === "NOT_FOUND" || err.status === 404) {
+    return {
+      success: false,
+      error: `找不到仓库 ${owner}/${repo}，请检查链接是否正确`,
+      code: "REPO_NOT_FOUND",
+    };
+  }
+  if (err.code === "RATE_LIMITED" || err.status === 403) {
+    return {
+      success: false,
+      error: "GitHub API 请求太频繁，请稍后再试",
+      code: "RATE_LIMITED",
+    };
+  }
+  return {
+    success: false,
+    error: `获取仓库信息失败：请检查链接是否正确`,
+    code: "FETCH_ERROR",
+  };
+}
+
+// ─── SKILL.md parser ────────────────────────────────────────
+
+async function fetchSkillMd(
+  owner: string,
+  repo: string
+): Promise<SkillMd> {
+  const content = await fetchFileContent(owner, repo, "SKILL.md");
+
+  // Parse YAML frontmatter
+  const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if (!match) {
+    throw { code: "INVALID_SKILL" };
+  }
+
+  const frontmatterStr = match[1];
+  const body = match[2].trim();
+  let frontmatter: Record<string, unknown>;
+
+  try {
+    frontmatter = YAML.parse(frontmatterStr) as Record<string, unknown>;
+  } catch {
+    throw { code: "INVALID_SKILL" };
+  }
+
+  const name = (frontmatter.name as string) || "";
+  const description = (frontmatter.description as string) || "";
+
+  if (!name) {
+    throw { code: "INVALID_SKILL" };
+  }
+
+  return {
+    name,
+    description,
+    body,
+    metadata: frontmatter.metadata as Record<string, string> | undefined,
+    category: frontmatter.category as string | undefined,
+  };
+}
+
+function buildFromSkillMd(skill: SkillMd): {
+  name: string;
+  description: string;
+  systemPrompt: string;
+  category?: string;
+  modelConfig: { provider: string; model: string; apiEndpoint: string; apiKeyEnv: string };
+} {
+  return {
+    name: skill.name,
+    description: skill.description,
+    systemPrompt: skill.body,
+    category: skill.category,
+    modelConfig: {
+      provider: "deepseek",
+      model: "deepseek-chat",
+      apiEndpoint: "https://api.deepseek.com/v1",
+      apiKeyEnv: "DEEPSEEK_API_KEY",
+    },
+  };
+}
+
+// ─── agent.json parser (backward compatible) ─────────────────
+
 async function fetchAgentJson(
   owner: string,
   repo: string
 ): Promise<AgentJson> {
-  // Try fetching agent.json from the repo root
-  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/agent.json`;
+  const content = await fetchFileContent(owner, repo, "agent.json");
+  try {
+    return JSON.parse(content) as AgentJson;
+  } catch {
+    throw { code: "INVALID_SKILL" };
+  }
+}
+
+function buildFromAgentJson(json: AgentJson): {
+  name: string;
+  description: string;
+  systemPrompt: string;
+  category?: string;
+  modelConfig: { provider: string; model: string; apiEndpoint: string; apiKeyEnv: string };
+} {
+  return {
+    name: json.name,
+    description: json.description || "",
+    systemPrompt: json.systemPrompt,
+    category: json.category,
+    modelConfig: {
+      provider: json.model?.provider || "deepseek",
+      model: json.model?.model || "deepseek-chat",
+      apiEndpoint: json.model?.apiEndpoint || "https://api.deepseek.com/v1",
+      apiKeyEnv:
+        json.model?.provider === "custom" ? "CUSTOM_API_KEY" : "DEEPSEEK_API_KEY",
+    },
+  };
+}
+
+// ─── GitHub API helper ───────────────────────────────────────
+
+async function fetchFileContent(
+  owner: string,
+  repo: string,
+  filename: string
+): Promise<string> {
+  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${filename}`;
 
   const response = await fetch(url, {
     headers: {
       Accept: "application/vnd.github.v3+json",
       "User-Agent": "AgentPlaza/1.0",
-      // Use GITHUB_TOKEN if available for higher rate limits
       ...(process.env.GITHUB_TOKEN
         ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
         : {}),
@@ -146,7 +280,7 @@ async function fetchAgentJson(
   });
 
   if (response.status === 404) {
-    throw { code: "NO_AGENT_JSON" };
+    throw { code: filename === "SKILL.md" ? "NO_SKILL_FILE" : "NO_AGENT_JSON" };
   }
   if (response.status === 403) {
     throw { code: "RATE_LIMITED", status: 403 };
@@ -161,14 +295,8 @@ async function fetchAgentJson(
   };
 
   if (!data.content) {
-    throw { code: "NO_AGENT_JSON" };
+    throw { code: filename === "SKILL.md" ? "NO_SKILL_FILE" : "NO_AGENT_JSON" };
   }
 
-  const decoded = Buffer.from(data.content, "base64").toString("utf-8");
-
-  try {
-    return JSON.parse(decoded) as AgentJson;
-  } catch {
-    throw { code: "INVALID_JSON" };
-  }
+  return Buffer.from(data.content, "base64").toString("utf-8");
 }
