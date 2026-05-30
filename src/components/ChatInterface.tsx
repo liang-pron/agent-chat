@@ -280,7 +280,7 @@ export function ChatInterface({
       )}
 
       {/* Messages area */}
-      <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollContainerRef} onScroll={handleScroll}>
+      <ScrollArea className="flex-1 min-h-0 pl-2 pr-4 py-4" ref={scrollContainerRef} onScroll={handleScroll}>
         <div className="space-y-6 max-w-3xl mx-auto">
           {!historyLoaded ? (
             <div className="flex justify-center py-20">
@@ -318,7 +318,7 @@ export function ChatInterface({
                 )}
                 <div
                   className={cn(
-                    "rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed",
+                    "rounded-2xl px-4 py-3 max-w-[85%] text-sm leading-relaxed ml-0",
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-secondary text-secondary-foreground rounded-bl-md prose prose-sm dark:prose-invert max-w-none"
