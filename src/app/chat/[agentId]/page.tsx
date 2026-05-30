@@ -35,34 +35,35 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-[calc(100vh-8rem)] -mx-4">
-      {/* Sidebar toggle + back button */}
-      <div className="absolute top-2 left-2 z-20 flex items-center gap-1">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
-          title={sidebarOpen ? "收起侧边栏" : "展开侧边栏"}
-        >
-          {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
-        </button>
-        <Link href="/">
-          <Button variant="ghost" size="sm" className="gap-1.5 h-8">
-            <ArrowLeft className="w-4 h-4" />
-            返回
-          </Button>
-        </Link>
-      </div>
-
-      {/* Conversation sidebar */}
-      {sidebarOpen && (
-        <div className="w-64 shrink-0">
-          <ConversationList
-            agentId={agentId}
-            activeSessionId={sessionId}
-            onSelectSession={handleSelectSession}
-            onNewSession={handleNewSession}
-          />
+      {/* Sidebar */}
+      <div className="flex border-r bg-background/50">
+        {/* Toggle button */}
+        <div className="flex flex-col items-center pt-1 px-0.5 border-r">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
+            title={sidebarOpen ? "收起" : "展开"}
+          >
+            {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+          </button>
+          <Link href="/">
+            <Button variant="ghost" size="icon" className="h-8 w-8 mt-1">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
         </div>
-      )}
+
+        {sidebarOpen && (
+          <div className="w-44 shrink-0">
+            <ConversationList
+              agentId={agentId}
+              activeSessionId={sessionId}
+              onSelectSession={handleSelectSession}
+              onNewSession={handleNewSession}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Chat area */}
       <div className="flex-1 flex flex-col min-w-0">

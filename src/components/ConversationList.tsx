@@ -76,12 +76,12 @@ export function ConversationList({
     s.messages?.[0]?.content?.slice(0, 30) || "空对话";
 
   return (
-    <div className="flex flex-col h-full border-r bg-background/50">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-3 border-b flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">对话列表</span>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onNewSession} title="新建对话">
-          <Plus className="w-4 h-4" />
+      <div className="px-2 py-2.5 border-b flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground">对话</span>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onNewSession} title="新建对话">
+          <Plus className="w-3.5 h-3.5" />
         </Button>
       </div>
 
