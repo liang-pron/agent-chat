@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
@@ -317,10 +316,9 @@ export function ChatInterface({
         </div>
       )}
 
-      {/* Messages area */}
-      <div className="flex-1 relative">
-      <ScrollArea
-        className="h-full p-4"
+      {/* Messages area — flex-1 min-h-0 to allow shrinking */}
+      <div
+        className="flex-1 min-h-0 overflow-y-auto p-4"
         ref={scrollContainerRef}
         onScroll={handleScroll}
       >
@@ -463,19 +461,18 @@ export function ChatInterface({
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Jump to bottom button */}
       {userScrolledUp && (
         <button
           onClick={() => { scrollToBottom(true); setUserScrolledUp(false); }}
-          className="absolute bottom-4 right-4 p-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all z-10"
+          className="absolute bottom-20 right-4 p-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all z-10"
           title="回到底部"
         >
           <ArrowDown className="w-4 h-4" />
         </button>
       )}
-      </div>
 
       {/* Input area */}
       <form
