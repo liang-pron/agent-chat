@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FileSystemContext } from "@/lib/fs-context";
 import { Plus, Trash2, FolderOpen, FileText, RefreshCw, FolderPlus, X, FolderInput } from "lucide-react";
 
 interface FileEntry { name: string; type: "file" | "dir"; size?: number }
@@ -96,9 +97,6 @@ export function FilePanel() {
     } catch { alert("保存失败"); }
   };
 
-  // Expose saveFile globally so ChatInterface can call it
-  if (typeof window !== "undefined") (window as unknown as Record<string, unknown>).__fsSave = saveFile;
-
   const enterFolder = (name: string) => {
     const fullPath = currentPath ? `${currentPath}/${name}` : name;
     fetchFiles(fullPath);
@@ -116,6 +114,7 @@ export function FilePanel() {
   // Directory setup screen
   if (!workspace) {
     return (
+      <FileSystemContext.Provider value={{ saveFile, workspace }}>
       <div className="flex flex-col h-full border-l bg-background/50">
         <div className="p-4 space-y-3">
           <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
@@ -132,10 +131,12 @@ export function FilePanel() {
           <p className="text-[10px] text-muted-foreground">选择本地文件夹，智能体可在其中读写文件。<br />每次操作都会提示确认。</p>
         </div>
       </div>
+      </FileSystemContext.Provider>
     );
   }
 
   return (
+    <FileSystemContext.Provider value={{ saveFile, workspace }}>
     <div className="flex flex-col h-full border-l bg-background/50">
       {/* Header — workspace indicator */}
       <div className="px-2 py-1.5 border-b text-[10px] text-muted-foreground truncate flex items-center gap-1">
@@ -215,5 +216,6 @@ export function FilePanel() {
         </div>
       )}
     </div>
+    </FileSystemContext.Provider>
   );
 }

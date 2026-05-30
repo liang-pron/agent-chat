@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import { useFileSystem } from "@/lib/fs-context";
 import { Settings, Key, Trash2, Loader2, ArrowDown, Save } from "lucide-react";
 
 interface Message {
@@ -40,6 +41,7 @@ export function ChatInterface({
   const [deleting, setDeleting] = useState(false);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { saveFile } = useFileSystem();
 
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState(() => {
@@ -144,15 +146,9 @@ export function ChatInterface({
       if (parts.length < 2) { setError("用法: /write 文件名 内容..."); return; }
       const fname = parts[0];
       const body = parts.slice(1).join(" ");
-      const ws = localStorage.getItem("fs-workspace") || "";
-      const save = (window as unknown as Record<string, Function>).__fsSave;
-      if (save) { save(fname, body); setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: `✅ 已写入 **${fname}**` }]); }
-      else {
-        try {
-          const res = await fetch(`/api/fs?workspace=${encodeURIComponent(ws)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: fname, content: body }) });
-          const data = await res.json();
-          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: res.ok ? `✅ 已写入 **${fname}**` : `❌ 写入失败: ${(data as { error?: string }).error}` }]);
-        } catch { setError("文件操作失败"); }
+      if (saveFile) {
+        saveFile(fname, body);
+        setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: `✅ 已写入 **${fname}**` }]);
       }
       setInput(""); return;
     }
@@ -379,15 +375,7 @@ export function ChatInterface({
                                   onClick={() => {
                                     const fname = prompt("保存为文件（输入路径，如 readme.md）：", "output.md");
                                     if (fname && confirm(`写入文件: ${fname}？`)) {
-                                      const save = (window as unknown as Record<string, Function>).__fsSave;
-                                      if (save) save(fname, codeText);
-                                      else {
-                                        fetch("/api/fs", {
-                                          method: "POST",
-                                          headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({ path: fname, content: codeText }),
-                                        }).then(() => alert("已保存: " + fname)).catch(() => alert("保存失败"));
-                                      }
+                                      saveFile(fname, codeText);
                                     }
                                   }}
                                 >
