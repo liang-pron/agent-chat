@@ -69,7 +69,7 @@ export async function POST(
       model,
       system: systemMessage,
       messages: modelMessages,
-      maxOutputTokens: 1_000_000,
+      maxOutputTokens: 393_216,
       onFinish: async ({ text }) => {
         if (sessionId && text) {
           await prisma.chatMessage.create({
