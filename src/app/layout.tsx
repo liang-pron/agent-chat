@@ -28,7 +28,6 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body className="min-h-screen bg-background flex flex-col">
-        {/* Navigation */}
         <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition-opacity">
@@ -46,10 +45,8 @@ export default function RootLayout({
           </div>
         </header>
 
-        {/* Main content */}
         <main className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">{children}</main>
 
-        {/* Footer */}
         <footer className="border-t">
           <div className="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
             AgentPlaza — 从 GitHub 导入 AI 角色，即刻聊天
