@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { importFromGitHub, parseSkillMdContent, findAllSkillMdFiles, fetchAndParseSkillMd } from "@/lib/github-import";
+import { importFromGitHub, parseSkillMdContent, findAllSkillMdFiles, fetchAndParseSkillMd, fetchRepoReadme } from "@/lib/github-import";
 import { validateGitHubUrl } from "@/lib/validators";
 import { classifyAgent } from "@/lib/classifier";
 import { registerAgent, isRepoImported } from "@/lib/agent-registry";
@@ -249,11 +249,22 @@ async function handleSingleGithubImport(githubUrl: string) {
     category = await classifyAgent(result.data.name, result.data.description, result.data.systemPrompt);
   }
 
+  // Try to fetch README.md as document
+  let document = "";
+  try {
+    const parsedUrl = validateGitHubUrl(result.data.githubUrl);
+    if (!("error" in parsedUrl)) {
+      const readme = await fetchRepoReadme(parsedUrl.owner, parsedUrl.repo);
+      if (readme) document = readme;
+    }
+  } catch { /* skip */ }
+
   const agent = await registerAgent({
     name: result.data.name, description: result.data.description, category,
     githubUrl: result.data.githubUrl, systemPrompt: result.data.systemPrompt,
     modelConfig: JSON.stringify(result.data.modelConfig),
     avatarUrl: result.data.avatarUrl,
+    document,
   });
 
   return NextResponse.json({ agent, category }, { status: 201 });

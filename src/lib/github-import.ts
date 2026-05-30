@@ -357,6 +357,22 @@ function buildFromAgentJson(json: AgentJson): {
   };
 }
 
+/** Fetch README.md from a GitHub repo (returns content or null) */
+export async function fetchRepoReadme(
+  owner: string,
+  repo: string
+): Promise<string | null> {
+  // Try common README filenames
+  const filenames = ["README.md", "readme.md", "Readme.md"];
+  for (const name of filenames) {
+    try {
+      const content = await fetchFileContent(owner, repo, name);
+      if (content) return content;
+    } catch { /* try next */ }
+  }
+  return null;
+}
+
 // ─── GitHub API helper ───────────────────────────────────────
 
 async function fetchFileContent(

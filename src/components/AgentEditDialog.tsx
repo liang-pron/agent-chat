@@ -166,7 +166,9 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
 
           {/* Document */}
           <div className="space-y-1.5">
-            <label htmlFor="edit-doc" className="text-sm font-medium">文档介绍（Markdown）</label>
+            <label htmlFor="edit-doc" className="text-sm font-medium">
+              文档介绍（Markdown）
+            </label>
             <textarea
               id="edit-doc"
               value={document}
@@ -175,8 +177,33 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
               rows={5}
               className="w-full min-h-[100px] rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono resize-y"
             />
+            <div className="flex items-center gap-2">
+              <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs cursor-pointer hover:bg-secondary transition-colors">
+                <Upload className="w-3 h-3" />
+                导入本地 md 文件
+                <input
+                  type="file"
+                  accept=".md"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    const reader = new FileReader();
+                    reader.onload = () => setDocument(reader.result as string);
+                    reader.readAsText(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {document && (
+                <button
+                  onClick={() => setDocument("")}
+                  className="text-xs text-muted-foreground hover:text-destructive"
+                >清除文档</button>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              支持 Markdown 格式，将在角色页面的「文档」标签中展示
+              支持 Markdown 格式，导入 GitHub 仓库时自动拉取 README.md
             </p>
           </div>
 

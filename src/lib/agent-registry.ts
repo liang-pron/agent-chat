@@ -23,6 +23,7 @@ export async function registerAgent(data: {
   systemPrompt: string;
   modelConfig: string;
   avatarUrl?: string;
+  document?: string;
 }): Promise<Agent> {
   return prisma.agent.create({ data });
 }
