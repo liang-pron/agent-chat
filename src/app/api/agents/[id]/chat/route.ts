@@ -64,11 +64,12 @@ export async function POST(
       content: m.content,
     })) as ModelMessage[];
 
-    // Stream response
+    // Stream response — large context window
     const result = streamText({
       model,
       system: systemMessage,
       messages: modelMessages,
+      maxOutputTokens: 32768,
       onFinish: async ({ text }) => {
         if (sessionId && text) {
           await prisma.chatMessage.create({
