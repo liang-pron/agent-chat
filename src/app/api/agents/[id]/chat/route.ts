@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { streamText, type ModelMessage } from "ai";
-import { getAgent } from "@/lib/agent-registry";
+import { getAgent, ensureSession } from "@/lib/agent-registry";
 import { routeModel } from "@/lib/model-router";
 import { validateMessage } from "@/lib/validators";
 import { prisma } from "@/lib/prisma";
@@ -33,6 +33,11 @@ export async function POST(
     const agent = await getAgent(id);
     if (!agent) {
       return new Response("角色不存在", { status: 404 });
+    }
+
+    // Ensure session exists (creates one if first message)
+    if (sessionId) {
+      await ensureSession(id, sessionId).catch(() => {});
     }
 
     // Route to model (user's API key takes priority over server key)

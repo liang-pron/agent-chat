@@ -17,16 +17,24 @@ interface Message {
 
 interface ChatInterfaceProps {
   agentId: string;
-  agentName: string;
-  agentAvatar?: string | null;
+  sessionId: string;
+  onAgentLoaded?: (name: string) => void;
 }
 
-export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterfaceProps) {
+export function ChatInterface({
+  agentId,
+  sessionId,
+  onAgentLoaded,
+}: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [agentName, setAgentName] = useState("加载中...");
+  const [agentAvatar, setAgentAvatar] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState(() => {
@@ -34,22 +42,25 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
     return localStorage.getItem("user-deepseek-api-key") || "";
   });
 
-  const [sessionId] = useState(() => {
-    if (typeof window === "undefined") return "";
-    let sid = sessionStorage.getItem(`chat-session-${agentId}`);
-    if (!sid) {
-      sid = crypto.randomUUID();
-      sessionStorage.setItem(`chat-session-${agentId}`, sid);
-    }
-    return sid;
-  });
+  // Fetch agent info
+  useEffect(() => {
+    fetch(`/api/agents/${agentId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.agent) {
+          setAgentName(d.agent.name);
+          setAgentAvatar(d.agent.avatarUrl);
+          onAgentLoaded?.(d.agent.name);
+        }
+      })
+      .catch(() => setAgentName("未知"));
+  }, [agentId]);
 
-  const [historyLoaded, setHistoryLoaded] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-
-  // Load existing messages from DB on mount
+  // Load messages when session changes
   useEffect(() => {
     if (!sessionId) return;
+    setMessages([]);
+    setHistoryLoaded(false);
     fetch(`/api/agents/${agentId}/messages?sessionId=${sessionId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -90,7 +101,6 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
     const content = input.trim();
     if (!content || isLoading) return;
 
-    // Add user message
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: "user",
@@ -101,7 +111,6 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
     setError(null);
     setIsLoading(true);
 
-    // Prepare messages array for API
     const apiMessages = [...messages, userMsg].map((m) => ({
       role: m.role,
       content: m.content,
@@ -119,14 +128,12 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
         throw new Error(text || "请求失败");
       }
 
-      // Read streaming response
       const reader = response.body?.getReader();
       if (!reader) throw new Error("无法读取响应");
 
       const assistantId = crypto.randomUUID();
       let assistantContent = "";
 
-      // Add empty assistant message that we'll update
       setMessages((prev) => [
         ...prev,
         { id: assistantId, role: "assistant", content: "" },
@@ -136,11 +143,8 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value, { stream: true });
         assistantContent += chunk;
-
-        // Update the assistant message in place
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId ? { ...m, content: assistantContent } : m
@@ -148,7 +152,7 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
         );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "聊天出错，请稍后重试");
+      setError(err instanceof Error ? err.message : "聊天出错");
     } finally {
       setIsLoading(false);
     }
@@ -176,7 +180,7 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
             onClick={handleClearHistory}
             disabled={deleting}
             className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-            title="清除对话记录"
+            title="删除当前对话"
           >
             {deleting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -204,7 +208,7 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
         <div className="px-4 py-3 border-b bg-secondary/30 space-y-2">
           <p className="text-xs font-medium flex items-center gap-1.5">
             <Key className="w-3.5 h-3.5" />
-            设置你的 API Key（存在浏览器本地，不会上传到服务器）
+            设置你的 API Key（存在浏览器本地）
           </p>
           <div className="flex gap-2">
             <Input
@@ -232,24 +236,17 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
               </Button>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">
-            使用你自己的 DeepSeek API Key 来聊天，不消耗站点额度。
-            <a
-              href="https://platform.deepseek.com/api_keys"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline ml-1"
-            >
-              获取 Key →
-            </a>
-          </p>
         </div>
       )}
 
       {/* Messages area */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-6 max-w-3xl mx-auto">
-          {messages.length === 0 && (
+          {!historyLoaded ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : messages.length === 0 ? (
             <div className="text-center py-20">
               <Avatar className="h-20 w-20 mx-auto mb-4 ring-4 ring-primary/10">
                 <AvatarImage src={agentAvatar || undefined} />
@@ -262,46 +259,46 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
                 开始和 {agentName} 聊天吧！
               </p>
             </div>
-          )}
-
-          {messages.map((msg, i) => (
-            <div
-              key={msg.id || i}
-              className={cn(
-                "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300",
-                msg.role === "user" ? "justify-end" : "justify-start"
-              )}
-            >
-              {msg.role === "assistant" && (
-                <Avatar className="h-8 w-8 shrink-0 mt-1">
-                  <AvatarImage src={agentAvatar || undefined} />
-                  <AvatarFallback className="text-xs font-bold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              )}
+          ) : (
+            messages.map((msg, i) => (
               <div
+                key={msg.id || i}
                 className={cn(
-                  "rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed whitespace-pre-wrap",
-                  msg.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-md"
-                    : "bg-secondary text-secondary-foreground rounded-bl-md"
+                  "flex gap-3",
+                  msg.role === "user" ? "justify-end" : "justify-start"
                 )}
               >
-                {msg.content}
+                {msg.role === "assistant" && (
+                  <Avatar className="h-8 w-8 shrink-0 mt-1">
+                    <AvatarImage src={agentAvatar || undefined} />
+                    <AvatarFallback className="text-xs font-bold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                <div
+                  className={cn(
+                    "rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed whitespace-pre-wrap",
+                    msg.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-md"
+                      : "bg-secondary text-secondary-foreground rounded-bl-md"
+                  )}
+                >
+                  {msg.content}
+                </div>
+                {msg.role === "user" && (
+                  <Avatar className="h-8 w-8 shrink-0 mt-1">
+                    <AvatarFallback className="bg-primary/20 text-xs font-bold">
+                      我
+                    </AvatarFallback>
+                  </Avatar>
+                )}
               </div>
-              {msg.role === "user" && (
-                <Avatar className="h-8 w-8 shrink-0 mt-1">
-                  <AvatarFallback className="bg-primary/20 text-xs font-bold">
-                    我
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </div>
-          ))}
+            ))
+          )}
 
           {isLoading && messages[messages.length - 1]?.role === "user" && (
-            <div className="flex gap-3 animate-in fade-in">
+            <div className="flex gap-3">
               <Avatar className="h-8 w-8 shrink-0 mt-1">
                 <AvatarFallback className="text-xs font-bold">
                   {initials}
@@ -328,7 +325,7 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
       {/* Input area */}
       <form
         onSubmit={handleSubmit}
-        className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        className="p-4 border-t bg-background/95 backdrop-blur"
       >
         <div className="flex gap-3 max-w-3xl mx-auto">
           <Textarea
@@ -340,9 +337,7 @@ export function ChatInterface({ agentId, agentName, agentAvatar }: ChatInterface
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                if (input.trim()) {
-                  handleSubmit(e);
-                }
+                if (input.trim()) handleSubmit(e);
               }
             }}
             disabled={isLoading}

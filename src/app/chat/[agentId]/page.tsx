@@ -1,40 +1,77 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useState, useCallback } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getAgent } from "@/lib/agent-registry";
 import { ChatInterface } from "@/components/ChatInterface";
+import { ConversationList } from "@/components/ConversationList";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, PanelLeftClose, PanelLeft } from "lucide-react";
 
-interface ChatPageProps {
-  params: Promise<{ agentId: string }>;
-}
+export default function ChatPage() {
+  const { agentId } = useParams<{ agentId: string }>();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sessionId, setSessionId] = useState(() => {
+    if (typeof window === "undefined") return "";
+    let sid = sessionStorage.getItem(`chat-session-${agentId}`);
+    if (!sid) {
+      sid = crypto.randomUUID();
+      sessionStorage.setItem(`chat-session-${agentId}`, sid);
+    }
+    return sid;
+  });
+  const [agentName, setAgentName] = useState("");
 
-export default async function ChatPage({ params }: ChatPageProps) {
-  const { agentId } = await params;
-  const agent = await getAgent(agentId);
+  const handleSelectSession = useCallback((sid: string) => {
+    setSessionId(sid);
+    sessionStorage.setItem(`chat-session-${agentId}`, sid);
+  }, [agentId]);
 
-  if (!agent) {
-    notFound();
-  }
+  const handleNewSession = useCallback(() => {
+    const sid = crypto.randomUUID();
+    setSessionId(sid);
+    sessionStorage.setItem(`chat-session-${agentId}`, sid);
+  }, [agentId]);
 
   return (
-    <div className="space-y-0">
-      {/* Back button */}
-      <div className="px-4 py-2">
+    <div className="flex h-[calc(100vh-8rem)] -mx-4">
+      {/* Sidebar toggle + back button */}
+      <div className="absolute top-2 left-2 z-20 flex items-center gap-1">
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
+          title={sidebarOpen ? "收起侧边栏" : "展开侧边栏"}
+        >
+          {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+        </button>
         <Link href="/">
-          <Button variant="ghost" size="sm" className="gap-1.5">
+          <Button variant="ghost" size="sm" className="gap-1.5 h-8">
             <ArrowLeft className="w-4 h-4" />
-            返回广场
+            返回
           </Button>
         </Link>
       </div>
 
-      {/* Chat interface */}
-      <ChatInterface
-        agentId={agent.id}
-        agentName={agent.name}
-        agentAvatar={agent.avatarUrl}
-      />
+      {/* Conversation sidebar */}
+      {sidebarOpen && (
+        <div className="w-64 shrink-0">
+          <ConversationList
+            agentId={agentId}
+            activeSessionId={sessionId}
+            onSelectSession={handleSelectSession}
+            onNewSession={handleNewSession}
+          />
+        </div>
+      )}
+
+      {/* Chat area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <ChatInterface
+          agentId={agentId}
+          sessionId={sessionId}
+          onAgentLoaded={setAgentName}
+        />
+      </div>
     </div>
   );
 }

@@ -76,11 +76,36 @@ export async function deleteMessages(agentId: string, sessionId: string) {
 
 /** Get all sessions with message counts for an agent (for conversation list) */
 export async function getSessions(agentId: string) {
-  return prisma.chatMessage.groupBy({
-    by: ["sessionId"],
+  return prisma.session.findMany({
     where: { agentId },
-    _count: { id: true },
-    _max: { createdAt: true },
-    orderBy: { _max: { createdAt: "desc" } },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      _count: { select: { messages: true } },
+      messages: { take: 1, orderBy: { createdAt: "desc" }, select: { content: true } },
+    },
   });
+}
+
+/** Get or create a session for an agent */
+export async function ensureSession(agentId: string, sessionId: string) {
+  let session = await prisma.session.findUnique({ where: { id: sessionId } });
+  if (!session) {
+    session = await prisma.session.create({
+      data: { id: sessionId, agentId, name: "新的对话" },
+    });
+  }
+  return session;
+}
+
+/** Rename a session */
+export async function renameSession(sessionId: string, name: string) {
+  return prisma.session.update({
+    where: { id: sessionId },
+    data: { name, updatedAt: new Date() },
+  });
+}
+
+/** Delete a session and its messages */
+export async function deleteSession(sessionId: string) {
+  await prisma.session.delete({ where: { id: sessionId } });
 }
