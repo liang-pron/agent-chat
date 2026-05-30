@@ -45,10 +45,10 @@ export async function getCategories(): Promise<string[]> {
   return result.map((r: { category: string }) => r.category);
 }
 
-/** Update an agent's name and/or avatar */
+/** Update an agent's name, avatar, and/or category */
 export async function updateAgent(
   id: string,
-  data: { name?: string; avatarUrl?: string | null }
+  data: { name?: string; avatarUrl?: string | null; category?: string }
 ): Promise<Agent> {
   return prisma.agent.update({ where: { id }, data });
 }

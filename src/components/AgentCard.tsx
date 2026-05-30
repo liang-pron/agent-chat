@@ -157,7 +157,7 @@ export function AgentCard({
       <AgentEditDialog
         open={showEdit}
         onClose={() => setShowEdit(false)}
-        agent={{ id: agent.id, name: agent.name, avatarUrl: agent.avatarUrl }}
+        agent={{ id: agent.id, name: agent.name, avatarUrl: agent.avatarUrl, category: agent.category }}
         onSaved={onUpdate}
       />
     </>

@@ -27,9 +27,10 @@ export async function PATCH(
   const { id } = await params;
   try {
     const body = await req.json();
-    const { name, avatarUrl } = body as {
+    const { name, avatarUrl, category } = body as {
       name?: string;
       avatarUrl?: string | null;
+      category?: string;
     };
 
     if (name !== undefined && !name.trim()) {
@@ -39,6 +40,7 @@ export async function PATCH(
     const agent = await updateAgent(id, {
       ...(name !== undefined ? { name: name.trim() } : {}),
       ...(avatarUrl !== undefined ? { avatarUrl } : {}),
+      ...(category !== undefined ? { category } : {}),
     });
 
     return NextResponse.json({ agent });

@@ -18,16 +18,19 @@ import { Loader2, Upload } from "lucide-react";
 interface AgentEditDialogProps {
   open: boolean;
   onClose: () => void;
-  agent: { id: string; name: string; avatarUrl: string | null };
+  agent: { id: string; name: string; avatarUrl: string | null; category: string };
   onSaved: () => void;
 }
 
 export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDialogProps) {
   const [name, setName] = useState(agent.name);
   const [avatarUrl, setAvatarUrl] = useState(agent.avatarUrl || "");
+  const [category, setCategory] = useState(agent.category);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const CATEGORIES = ["教育", "科技", "娱乐", "商业", "生活方式", "游戏", "其他"];
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,6 +76,7 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
         body: JSON.stringify({
           name: name.trim(),
           avatarUrl: avatarUrl.trim() || null,
+          category,
         }),
       });
 
@@ -94,6 +98,7 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
       setName(agent.name);
+      setCategory(agent.category);
       setAvatarUrl(agent.avatarUrl || "");
       setError(null);
     } else {
@@ -132,6 +137,28 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
               placeholder="输入角色名"
               maxLength={50}
             />
+          </div>
+
+          {/* Category */}
+          <div className="space-y-1.5">
+            <label htmlFor="edit-category" className="text-sm font-medium">领域分类</label>
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
+                    category === cat
+                      ? "bg-emerald-600 text-white border-emerald-600"
+                      : "bg-background text-muted-foreground border-border hover:border-emerald-300"
+                  )}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Avatar URL */}
