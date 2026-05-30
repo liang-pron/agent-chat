@@ -38,7 +38,7 @@ export function FilePanel() {
     } catch { setError("加载失败"); }
   }, [workspace]);
 
-  useEffect(() => { if (workspace) fetchFiles(); }, [fetchFiles]);
+  useEffect(() => { if (workspace) { fetchFiles(); } else { setError(null); } }, [fetchFiles, workspace]);
 
   const openWorkspace = () => {
     const dir = pathInput.trim();
