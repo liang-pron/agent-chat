@@ -137,7 +137,7 @@ export function ImportForm() {
               <li>
                 Fork{" "}
                 <a
-                  href="https://github.com/lenovo/agent-plaza-template"
+                  href="https://github.com/liang-pron/agent-chat-template"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline inline-inline-flex items-center gap-1"
