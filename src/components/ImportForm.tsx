@@ -61,7 +61,7 @@ export function ImportForm() {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-2xl mx-auto glass border-[#1e2756]">
       <CardHeader>
         <CardTitle className="text-2xl">导入角色 Agent</CardTitle>
         <CardDescription>
