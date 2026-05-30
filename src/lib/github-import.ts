@@ -162,7 +162,39 @@ function handleFetchError(
   };
 }
 
-// ─── SKILL.md parser ────────────────────────────────────────
+// ─── Public parser for raw SKILL.md content ──────────────────
+
+interface ParsedSkill {
+  name: string;
+  description: string;
+  systemPrompt: string;
+  category?: string;
+}
+
+/** Parse raw SKILL.md content (YAML frontmatter + Markdown body) */
+export function parseSkillMdContent(content: string): ParsedSkill | null {
+  const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if (!match) return null;
+
+  const frontmatterStr = match[1];
+  const body = match[2].trim();
+  let frontmatter: Record<string, unknown>;
+
+  try { frontmatter = YAML.parse(frontmatterStr) as Record<string, unknown>; }
+  catch { return null; }
+
+  const name = (frontmatter.name as string) || "";
+  if (!name) return null;
+
+  return {
+    name,
+    description: (frontmatter.description as string) || "",
+    systemPrompt: body,
+    category: frontmatter.category as string | undefined,
+  };
+}
+
+// ─── SKILL.md parser (GitHub) ─────────────────────────────────
 
 async function fetchSkillMd(
   owner: string,
