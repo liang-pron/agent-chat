@@ -1,4 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateText } from "ai";
 
 /** Valid categories for agent classification */
@@ -88,7 +88,8 @@ async function classifyWithLLM(
     throw new Error("DEEPSEEK_API_KEY not configured");
   }
 
-  const deepseek = createOpenAI({
+  const deepseek = createOpenAICompatible({
+    name: "deepseek",
     apiKey,
     baseURL: "https://api.deepseek.com/v1",
   });

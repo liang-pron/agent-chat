@@ -1,4 +1,4 @@
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 
 /** Supported model providers in v1 */
@@ -35,7 +35,8 @@ export function routeModel(modelConfigJson: string): {
   switch (provider) {
     case "deepseek": {
       const apiKey = process.env.DEEPSEEK_API_KEY || "";
-      const deepseek = createOpenAI({
+      const deepseek = createOpenAICompatible({
+        name: "deepseek",
         apiKey,
         baseURL: "https://api.deepseek.com/v1",
       });
@@ -44,7 +45,8 @@ export function routeModel(modelConfigJson: string): {
 
     case "custom": {
       const apiKey = process.env[config.apiKeyEnv] || "";
-      const customProvider = createOpenAI({
+      const customProvider = createOpenAICompatible({
+        name: "custom",
         apiKey,
         baseURL: config.apiEndpoint,
       });
@@ -57,7 +59,8 @@ export function routeModel(modelConfigJson: string): {
     default: {
       // Fallback
       const apiKey = process.env.DEEPSEEK_API_KEY || "";
-      const deepseek = createOpenAI({
+      const deepseek = createOpenAICompatible({
+        name: "deepseek",
         apiKey,
         baseURL: "https://api.deepseek.com/v1",
       });

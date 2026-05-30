@@ -1,3 +1,4 @@
+import path from "path";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
@@ -6,8 +7,15 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
+  const dbUrl = process.env.DATABASE_URL || "file:./prisma/dev.db";
+  // Convert relative file: path to absolute path for libsql adapter
+  const filePath = dbUrl.replace(/^file:/, "");
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.resolve(process.cwd(), filePath);
+
   const adapter = new PrismaLibSql({
-    url: process.env.DATABASE_URL || "file:./prisma/dev.db",
+    url: `file:${absolutePath}`,
   });
   return new PrismaClient({ adapter });
 }
