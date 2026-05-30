@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ConversationList } from "@/components/ConversationList";
+import { FilePanel } from "@/components/FilePanel";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, PanelLeftClose, PanelLeft, MessageCircle, BookOpen } from "lucide-react";
@@ -144,6 +145,11 @@ export default function ChatPage() {
             )}
           </ScrollArea>
         )}
+      </div>
+
+      {/* File panel — right side */}
+      <div className="w-56 shrink-0 hidden xl:block">
+        <FilePanel />
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import { Settings, Key, Trash2, Loader2, ArrowDown } from "lucide-react";
+import { Settings, Key, Trash2, Loader2, ArrowDown, Save } from "lucide-react";
 
 interface Message {
   id: string;
@@ -316,9 +316,32 @@ export function ChatInterface({
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeRaw]}
                       components={{
-                        pre: ({ children }) => (
-                          <pre className="bg-muted/50 rounded-lg p-3 my-2 overflow-x-auto text-xs">{children}</pre>
-                        ),
+                        pre: ({ children }) => {
+                          const codeEl = children as React.ReactElement<{ children?: string }> | undefined;
+                          const codeText = typeof codeEl?.props?.children === "string" ? codeEl.props.children : "";
+                          return (
+                            <div className="relative group/pre my-2">
+                              <pre className="bg-muted/50 rounded-lg p-3 pr-16 overflow-x-auto text-xs">{children}</pre>
+                              {codeText && (
+                                <button
+                                  className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-background/80 hover:bg-primary hover:text-primary-foreground opacity-0 group-hover/pre:opacity-100 transition-all"
+                                  onClick={() => {
+                                    const fname = prompt("保存为文件（输入路径，如 readme.md）：", "output.md");
+                                    if (fname) {
+                                      fetch("/api/fs", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ path: fname, content: codeText }),
+                                      }).then(() => alert("已保存: " + fname)).catch(() => alert("保存失败"));
+                                    }
+                                  }}
+                                >
+                                  <Save className="w-3 h-3" />保存
+                                </button>
+                              )}
+                            </div>
+                          );
+                        },
                         code: ({ className, children, ...props }) => {
                           const isInline = !className;
                           return isInline ? (
