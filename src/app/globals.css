@@ -2,114 +2,177 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Design: Neon Night Plaza — dark neon theme */
+/* ─── AgentPlaza Design System ───
+   Light: warm cream + coral + serif display
+   Dark:  warm navy + coral + same typographic voice
+   Inspired by Claude.com editorial aesthetic */
+
+/* ─── Font imports ─── */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @theme inline {
-  --color-background: var(--bg-deep);
-  --color-foreground: var(--text-primary);
-  --font-sans: var(--font-dm-sans);
-  --font-mono: var(--font-jetbrains-mono);
-  --font-heading: var(--font-orbitron);
-  --color-sidebar-ring: var(--neon-cyan);
-  --color-sidebar-border: var(--border-subtle);
-  --color-sidebar-accent-foreground: var(--neon-cyan);
-  --color-sidebar-accent: var(--bg-elevated);
-  --color-sidebar-primary-foreground: var(--bg-deep);
-  --color-sidebar-primary: var(--neon-cyan);
-  --color-sidebar-foreground: var(--text-secondary);
-  --color-sidebar: var(--bg-surface);
-  --color-chart-5: var(--neon-pink);
-  --color-chart-4: var(--neon-amber);
-  --color-chart-3: var(--neon-green);
-  --color-chart-2: var(--neon-cyan);
-  --color-chart-1: var(--neon-pink);
-  --color-ring: var(--neon-cyan);
-  --color-input: var(--bg-surface);
-  --color-border: var(--border-subtle);
-  --color-destructive: var(--neon-pink);
-  --color-accent-foreground: var(--neon-cyan);
-  --color-accent: var(--bg-elevated);
-  --color-muted-foreground: var(--text-muted);
-  --color-muted: var(--bg-surface);
-  --color-secondary-foreground: var(--text-secondary);
-  --color-secondary: var(--bg-surface);
-  --color-primary-foreground: var(--bg-deep);
-  --color-primary: var(--neon-cyan);
-  --color-popover-foreground: var(--text-primary);
-  --color-popover: var(--bg-elevated);
-  --color-card-foreground: var(--text-primary);
-  --color-card: var(--bg-surface);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink);
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: var(--font-display);
+  --color-sidebar-ring: var(--primary);
+  --color-sidebar-border: var(--hairline);
+  --color-sidebar-accent-foreground: var(--primary);
+  --color-sidebar-accent: var(--surface-card);
+  --color-sidebar-primary-foreground: var(--canvas);
+  --color-sidebar-primary: var(--primary);
+  --color-sidebar-foreground: var(--body);
+  --color-sidebar: var(--canvas);
+  --color-chart-5: var(--accent-amber);
+  --color-chart-4: var(--accent-teal);
+  --color-chart-3: var(--success);
+  --color-chart-2: var(--primary);
+  --color-chart-1: var(--primary-active);
+  --color-ring: var(--primary);
+  --color-input: var(--canvas);
+  --color-border: var(--hairline);
+  --color-destructive: var(--error);
+  --color-accent-foreground: var(--ink);
+  --color-accent: var(--surface-card);
+  --color-muted-foreground: var(--muted);
+  --color-muted: var(--surface-soft);
+  --color-secondary-foreground: var(--body);
+  --color-secondary: var(--surface-card);
+  --color-primary-foreground: var(--on-primary);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--ink);
+  --color-popover: var(--canvas);
+  --color-card-foreground: var(--ink);
+  --color-card: var(--surface-card);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.125rem;
 }
 
+/* ─── Light Theme (default) ─── */
 :root {
-  /* ─── Neon Night Plaza Palette ─── */
-  --bg-deep: #070b1a;
-  --bg-surface: #0f1429;
-  --bg-elevated: #161d3b;
-  --neon-cyan: #00e5ff;
-  --neon-pink: #ff2d95;
-  --neon-amber: #ffb74d;
-  --neon-green: #00e676;
-  --text-primary: #e8eaf0;
-  --text-secondary: #8890b0;
-  --text-muted: #4a5078;
-  --border-subtle: #1e2756;
-  --radius: 0.75rem;
+  --font-display: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+
+  /* Brand */
+  --primary: #cc785c;
+  --primary-active: #a9583e;
+  --primary-disabled: #e6dfd8;
+
+  /* Accent */
+  --accent-teal: #5db8a6;
+  --accent-amber: #e8a55a;
+
+  /* Surface */
+  --canvas: #faf9f5;
+  --surface-soft: #f5f0e8;
+  --surface-card: #efe9de;
+  --surface-cream-strong: #e8e0d2;
+  --surface-dark: #181715;
+  --surface-dark-elevated: #252320;
+  --surface-dark-soft: #1f1e1b;
+
+  /* Hairlines */
+  --hairline: #e6dfd8;
+  --hairline-soft: #ebe6df;
+
+  /* Text */
+  --ink: #141413;
+  --body-strong: #252523;
+  --body: #3d3d3a;
+  --muted: #6c6a64;
+  --muted-soft: #8e8b82;
+  --on-primary: #ffffff;
+  --on-dark: #faf9f5;
+  --on-dark-soft: #a09d96;
+
+  /* Semantic */
+  --success: #5db872;
+  --warning: #d4a017;
+  --error: #c64545;
 }
 
+/* ─── Dark Theme ─── */
+.dark {
+  --font-display: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+
+  /* Brand — coral stays, slightly brighter for dark bg */
+  --primary: #d4846c;
+  --primary-active: #cc785c;
+  --primary-disabled: #3d302a;
+
+  /* Accent */
+  --accent-teal: #6ec9b6;
+  --accent-amber: #edb46e;
+
+  /* Surface — warm dark navy */
+  --canvas: #181715;
+  --surface-soft: #1f1e1b;
+  --surface-card: #252320;
+  --surface-cream-strong: #2e2c28;
+  --surface-dark: #0f0e0d;
+  --surface-dark-elevated: #2a2825;
+  --surface-dark-soft: #22201d;
+
+  /* Hairlines */
+  --hairline: #2e2c28;
+  --hairline-soft: #252320;
+
+  /* Text */
+  --ink: #faf9f5;
+  --body-strong: #e8e6e0;
+  --body: #c4c0b8;
+  --muted: #8e8b82;
+  --muted-soft: #6c6a64;
+  --on-primary: #ffffff;
+  --on-dark: #faf9f5;
+  --on-dark-soft: #a09d96;
+
+  /* Semantic */
+  --success: #6cc77e;
+  --warning: #e0b030;
+  --error: #d45555;
+}
+
+/* ─── Base ─── */
 @layer base {
-  * {
-    border-color: var(--border-subtle);
-    outline-color: var(--neon-cyan);
-  }
+  * { border-color: var(--hairline); }
   body {
-    background-color: var(--bg-deep);
-    color: var(--text-primary);
-    font-family: "DM Sans", system-ui, sans-serif;
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
   }
-  html { font-family: "DM Sans", system-ui, sans-serif; }
-}
-
-/* ─── Neon glow utilities ─── */
-@utility glow-cyan {
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15), 0 0 30px rgba(0, 229, 255, 0.05);
-}
-@utility glow-pink {
-  box-shadow: 0 0 15px rgba(255, 45, 149, 0.15), 0 0 30px rgba(255, 45, 149, 0.05);
 }
 
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-deep); }
-::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::-webkit-scrollbar-track { background: var(--canvas); }
+::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-soft); }
 
 /* ─── Animations ─── */
-@keyframes neon-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@keyframes glow-breathe {
-  0%, 100% { box-shadow: 0 0 5px rgba(0, 229, 255, 0.1); }
-  50% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
-}
 .animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
-.animate-glow-breathe { animation: glow-breathe 3s ease-in-out infinite; }
-.animate-neon-pulse { animation: neon-pulse 2s ease-in-out infinite; }
 
-/* ─── Glass surface ─── */
-.glass {
-  background: rgba(15, 20, 41, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(30, 39, 86, 0.6);
+/* ─── Staggered children utility ─── */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up 0.5s ease-out forwards;
 }
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(10) { animation-delay: 540ms; }
+.stagger-children > *:nth-child(11) { animation-delay: 600ms; }
+.stagger-children > *:nth-child(12) { animation-delay: 660ms; }

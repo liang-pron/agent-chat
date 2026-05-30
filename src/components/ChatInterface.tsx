@@ -183,8 +183,11 @@ export function ChatInterface({
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      {/* Chat header */}
-      <div className="flex items-center gap-3 p-4 glass border-b-0">
+      {/* Chat header — cream surface, hairline bottom */}
+      <div
+        className="flex items-center gap-3 px-5 py-3 border-b"
+        style={{ backgroundColor: "var(--canvas)", borderColor: "var(--hairline)" }}
+      >
         <Avatar className="h-10 w-10">
           <AvatarImage src={agentAvatar || undefined} />
           <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-sm font-bold">
@@ -305,13 +308,11 @@ export function ChatInterface({
                 <div
                   className={cn(
                     "rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed",
-                    msg.role === "user"
-                      ? "rounded-br-md"
-                      : "rounded-bl-md prose prose-sm max-w-none"
+                    msg.role === "user" ? "rounded-br-md" : "rounded-bl-md prose prose-sm max-w-none"
                   )}
                   style={msg.role === "user"
-                    ? { background: "linear-gradient(135deg, #006994, #004466)", color: "#e8f4ff" }
-                    : { background: "rgba(15,20,41,0.8)", color: "#e8eaf0", border: "1px solid rgba(30,39,86,0.5)", backdropFilter: "blur(8px)" }
+                    ? { backgroundColor: "var(--surface-dark)", color: "var(--on-dark)" }
+                    : { backgroundColor: "var(--surface-card)", color: "var(--body-strong)", border: "1px solid var(--hairline-soft)" }
                   }
                 >
                   {msg.role === "assistant" ? (
@@ -396,8 +397,12 @@ export function ChatInterface({
       )}
       </div>
 
-      {/* Input area */}
-      <form onSubmit={handleSubmit} className="p-4 glass border-t-0">
+      {/* Input area — cream, hairline top */}
+      <form
+        onSubmit={handleSubmit}
+        className="px-5 py-4 border-t"
+        style={{ backgroundColor: "var(--canvas)", borderColor: "var(--hairline)" }}
+      >
         <div className="flex gap-3 max-w-3xl mx-auto">
           <Textarea
             value={input}
