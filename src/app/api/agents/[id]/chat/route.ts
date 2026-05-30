@@ -14,10 +14,11 @@ export async function POST(
 
   try {
     const body = await req.json();
-    const { messages, sessionId, apiKey } = body as {
+    const { messages, sessionId, apiKey, workspace } = body as {
       messages: { role: string; content: string }[];
       sessionId?: string;
       apiKey?: string;
+      workspace?: string;
     };
 
     // Validate the last (user) message
@@ -42,7 +43,16 @@ export async function POST(
 
     // Route to model (user's API key takes priority over server key)
     const { model } = routeModel(agent.modelConfig, apiKey);
-    const systemMessage = agent.systemPrompt;
+    // Inject workspace file context if user has one set
+    let systemMessage = agent.systemPrompt;
+    if (workspace) {
+      try {
+        const { listFiles } = await import("@/lib/fs-ops");
+        const files = await listFiles(workspace);
+        const fileList = files.map((f) => `${f.type === "dir" ? "📁" : "📄"} ${f.name}`).join("\n");
+        systemMessage = `${systemMessage}\n\n## 当前工作目录\n路径: ${workspace}\n文件列表:\n\`\`\`\n${fileList || "(空目录)"}\n\`\`\`\n\n你可以告诉用户使用以下命令操作文件:\n- /read <文件名> — 读取文件内容\n- /write <文件名> <内容> — 写入文件\n- /ls — 列出目录文件`;
+      } catch { /* skip */ }
+    }
 
     // Save user message to DB (if sessionId provided)
     if (sessionId && lastMessage?.role === "user") {

@@ -122,6 +122,57 @@ export function ChatInterface({
     const content = input.trim();
     if (!content || isLoading) return;
 
+    // ─── Slash commands for file operations ───
+    if (content.startsWith("/read ") || content.startsWith("/cat ")) {
+      const fname = content.split(/\s+/).slice(1).join(" ");
+      if (!fname) return;
+      const ws = localStorage.getItem("fs-workspace") || "";
+      try {
+        const res = await fetch(`/api/fs?workspace=${encodeURIComponent(ws)}&path=${encodeURIComponent(fname)}&read=1`);
+        const data = await res.json();
+        if (res.ok) {
+          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: `📄 **${fname}**\n\`\`\`\n${data.content || "(空文件)"}\n\`\`\`` }]);
+        } else {
+          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: `❌ 读取失败: ${data.error || "文件不存在"}` }]);
+        }
+      } catch { setError("文件操作失败"); }
+      setInput(""); return;
+    }
+
+    if (content.startsWith("/write ") || content.startsWith("/save ")) {
+      const parts = content.split(/\s+/).slice(1);
+      if (parts.length < 2) { setError("用法: /write 文件名 内容..."); return; }
+      const fname = parts[0];
+      const body = parts.slice(1).join(" ");
+      const ws = localStorage.getItem("fs-workspace") || "";
+      const save = (window as unknown as Record<string, Function>).__fsSave;
+      if (save) { save(fname, body); setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: `✅ 已写入 **${fname}**` }]); }
+      else {
+        try {
+          const res = await fetch(`/api/fs?workspace=${encodeURIComponent(ws)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: fname, content: body }) });
+          const data = await res.json();
+          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: res.ok ? `✅ 已写入 **${fname}**` : `❌ 写入失败: ${(data as { error?: string }).error}` }]);
+        } catch { setError("文件操作失败"); }
+      }
+      setInput(""); return;
+    }
+
+    if (content.startsWith("/ls") || content.startsWith("/dir")) {
+      const ws = localStorage.getItem("fs-workspace") || "";
+      try {
+        const res = await fetch(`/api/fs?workspace=${encodeURIComponent(ws)}`);
+        const data = await res.json();
+        if (res.ok) {
+          const list = (data.files as { name: string; type: string }[]).map((f) => `${f.type === "dir" ? "📁" : "📄"} ${f.name}`).join("\n");
+          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: `**工作目录:** ${data.workspace}\n\`\`\`\n${list || "(空目录)"}\n\`\`\`` }]);
+        } else {
+          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content }, { id: crypto.randomUUID(), role: "assistant", content: `❌ ${data.error}` }]);
+        }
+      } catch { setError("文件操作失败"); }
+      setInput(""); return;
+    }
+
+    // Normal chat message
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: "user",
@@ -142,7 +193,12 @@ export function ChatInterface({
       const response = await fetch(`/api/agents/${agentId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages, sessionId, apiKey }),
+        body: JSON.stringify({
+          messages: apiMessages,
+          sessionId,
+          apiKey,
+          workspace: localStorage.getItem("fs-workspace") || "",
+        }),
       });
 
       if (!response.ok) {
