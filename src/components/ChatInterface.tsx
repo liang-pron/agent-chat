@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { Settings, Key, Trash2, Loader2, ArrowDown } from "lucide-react";
 
 interface Message {
@@ -313,6 +314,7 @@ export function ChatInterface({
                   {msg.role === "assistant" ? (
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
                       components={{
                         pre: ({ children }) => (
                           <pre className="bg-muted/50 rounded-lg p-3 my-2 overflow-x-auto text-xs">{children}</pre>

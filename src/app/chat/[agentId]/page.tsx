@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ConversationList } from "@/components/ConversationList";
 import { Button } from "@/components/ui/button";
@@ -119,6 +120,7 @@ export default function ChatPage() {
               <div className="max-w-3xl mx-auto prose prose-sm dark:prose-invert">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw]}
                   components={{
                     pre: ({ children }) => (
                       <pre className="bg-muted/50 rounded-lg p-4 my-3 overflow-x-auto text-sm">{children}</pre>
