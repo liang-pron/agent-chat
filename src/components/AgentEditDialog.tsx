@@ -12,7 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Loader2, Upload } from "lucide-react";
 
 interface AgentEditDialogProps {
   open: boolean;
@@ -24,8 +25,38 @@ interface AgentEditDialogProps {
 export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDialogProps) {
   const [name, setName] = useState(agent.name);
   const [avatarUrl, setAvatarUrl] = useState(agent.avatarUrl || "");
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "上传失败");
+
+      setAvatarUrl(data.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "上传失败");
+    } finally {
+      setUploading(false);
+      // Reset file input
+      e.target.value = "";
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -105,15 +136,42 @@ export function AgentEditDialog({ open, onClose, agent, onSaved }: AgentEditDial
 
           {/* Avatar URL */}
           <div className="space-y-1.5">
-            <label htmlFor="edit-avatar">头像链接（可选）</label>
-            <Input
-              id="edit-avatar"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="https://example.com/avatar.jpg"
-            />
+            <label htmlFor="edit-avatar" className="text-sm font-medium">
+              头像链接（可选）
+            </label>
+            <div className="flex gap-2">
+              <Input
+                id="edit-avatar"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder="https://example.com/avatar.jpg"
+                className="flex-1"
+              />
+              <label
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-colors shrink-0",
+                  uploading
+                    ? "bg-muted text-muted-foreground cursor-not-allowed"
+                    : "bg-background hover:bg-secondary"
+                )}
+              >
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4" />
+                )}
+                本地上传
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
             <p className="text-xs text-muted-foreground">
-              粘贴图片 URL，留空则显示角色名首字
+              粘贴 URL 或从本地上传图片（最大 2MB），留空显示角色名首字
             </p>
           </div>
 
