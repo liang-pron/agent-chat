@@ -5,6 +5,7 @@ import { AgentCard } from "@/components/AgentCard";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AgentWithCount } from "@/lib/agent-registry";
+import { Sparkles } from "lucide-react";
 
 export default function HomePage() {
   const [agents, setAgents] = useState<AgentWithCount[]>([]);
@@ -34,18 +35,20 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero — editorial serif headline */}
-      <div className="text-center py-16 space-y-5">
-        <h1
-          className="text-5xl tracking-tight"
-          style={{ fontFamily: "var(--font-display)", fontWeight: 400, color: "var(--ink)", letterSpacing: "-0.02em" }}
-        >
+      {/* Hero */}
+      <div className="text-center space-y-4 py-10">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-4"
+          style={{ background: "rgba(0,229,255,0.08)", color: "#00e5ff", border: "1px solid rgba(0,229,255,0.15)" }}>
+          <Sparkles className="w-3.5 h-3.5" />
           AI 角色扮演广场
+        </div>
+        <h1 className="text-4xl font-bold tracking-tight" style={{ fontFamily: "'Orbitron', sans-serif", color: "#e8eaf0" }}>
+          Agent Plaza
         </h1>
-        <p className="text-base max-w-md mx-auto leading-relaxed" style={{ color: "var(--body)" }}>
-          从 GitHub 粘贴链接，导入 AI 角色，即刻开始聊天。
+        <p className="text-base max-w-lg mx-auto leading-relaxed" style={{ color: "#8890b0" }}>
+          从 GitHub 粘贴一个链接，导入 AI 角色，即刻开始聊天
           <br />
-          张雪峰 · 老罗 · 甄嬛 · 马斯克 ··· 和任何人聊天。
+          张雪峰 · 老罗 · 甄嬛 · 马斯克 ··· 你可以跟任何人聊天
         </p>
       </div>
 
@@ -65,7 +68,7 @@ export default function HomePage() {
         </div>
       ) : agents.length === 0 ? (
         <div className="text-center py-20 space-y-4">
-          <div className="text-6xl select-none mx-auto" style={{ color: "var(--muted-soft)" }}>?</div>
+          <Sparkles className="w-16 h-16 mx-auto" style={{ color: "#4a5078" }} />
           <h3 className="text-xl font-semibold text-muted-foreground">
             {category === "全部" ? "广场还是空的" : `还没有「${category}」分类的角色`}
           </h3>

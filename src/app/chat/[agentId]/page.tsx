@@ -36,7 +36,7 @@ export default function ChatPage() {
   return (
     <div className="flex h-[calc(100vh-8rem)] -mx-4 -my-6 -mr-6">
       {/* Sidebar */}
-      <div className="flex border-r -ml-4" style={{ borderColor: "var(--hairline)", backgroundColor: "var(--canvas)" }}>
+      <div className="flex border-r bg-background/50 -ml-4">
         {/* Toggle button */}
         <div className="flex flex-col items-center pt-1.5 px-0.5">
           <button
