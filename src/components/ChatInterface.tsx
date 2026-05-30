@@ -327,12 +327,16 @@ export function ChatInterface({
                                   className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-background/80 hover:bg-primary hover:text-primary-foreground opacity-0 group-hover/pre:opacity-100 transition-all"
                                   onClick={() => {
                                     const fname = prompt("保存为文件（输入路径，如 readme.md）：", "output.md");
-                                    if (fname) {
-                                      fetch("/api/fs", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ path: fname, content: codeText }),
-                                      }).then(() => alert("已保存: " + fname)).catch(() => alert("保存失败"));
+                                    if (fname && confirm(`写入文件: ${fname}？`)) {
+                                      const save = (window as unknown as Record<string, Function>).__fsSave;
+                                      if (save) save(fname, codeText);
+                                      else {
+                                        fetch("/api/fs", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ path: fname, content: codeText }),
+                                        }).then(() => alert("已保存: " + fname)).catch(() => alert("保存失败"));
+                                      }
                                     }
                                   }}
                                 >
