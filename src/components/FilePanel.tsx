@@ -24,12 +24,10 @@ export function FilePanel() {
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState<"file" | "folder" | null>(null);
 
-  const apiHeaders = (): Record<string, string> => (workspace ? { "x-workspace": workspace } : {});
-
   const fetchFiles = useCallback(async (dirPath = "") => {
     if (!workspace) return;
     try {
-      const res = await fetch(`/api/fs?workspace=${encodeURIComponent(workspace)}&path=${encodeURIComponent(dirPath)}`, { headers: apiHeaders() });
+      const res = await fetch(`/api/fs?workspace=${encodeURIComponent(workspace)}&path=${encodeURIComponent(dirPath)}`);
       const data = await res.json();
       if (!res.ok) { setError(data.error || `HTTP ${res.status}`); setFiles([]); return; }
       setFiles(data.files || []);
@@ -67,7 +65,7 @@ export function FilePanel() {
     try {
       const res = await fetch(`/api/fs?workspace=${encodeURIComponent(workspace)}`, {
         method: "POST",
-        headers: { ...apiHeaders(), "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: fullPath, content: creating === "file" ? "" : undefined, folder: creating === "folder" }),
       });
       if (res.ok) { setNewName(""); setCreating(null); fetchFiles(currentPath); }
@@ -90,7 +88,7 @@ export function FilePanel() {
     try {
       const res = await fetch(`/api/fs?workspace=${encodeURIComponent(workspace)}`, {
         method: "POST",
-        headers: { ...apiHeaders(), "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: fname, content }),
       });
       if (res.ok) { fetchFiles(currentPath); alert("已保存: " + fname); }

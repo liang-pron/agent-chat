@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { listFiles, readTextFile, writeTextFile, createFolder, deleteEntry } from "@/lib/fs-ops";
 
 function getWorkspace(req: NextRequest): string {
-  return req.headers.get("x-workspace") || req.nextUrl.searchParams.get("workspace") || "";
+  return req.nextUrl.searchParams.get("workspace") || "";
 }
 
 /** GET /api/fs?workspace=DIR&path=sub — list files; &read=1 — read file */
