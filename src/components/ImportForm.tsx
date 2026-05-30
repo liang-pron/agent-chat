@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, CheckCircle2, XCircle, ExternalLink, Upload, FileText } from "lucide-react";
 
+interface BulkResult { path: string; name: string; status: "ok" | "skip" | "fail"; reason?: string }
 interface ImportStatus {
-  type: "idle" | "loading" | "success" | "error";
+  type: "idle" | "loading" | "success" | "error" | "bulk";
   message?: string;
   agentId?: string;
   agentName?: string;
+  bulkResults?: { total: number; okCount: number; skipCount: number; failCount: number; results: BulkResult[] };
 }
 
 export function ImportForm() {
@@ -42,7 +44,11 @@ export function ImportForm() {
       });
       const data = await res.json();
       if (!res.ok) { setStatus({ type: "error", message: data.error || "导入失败" }); return; }
-      setStatus({ type: "success", message: "导入成功！", agentId: data.agent.id, agentName: data.agent.name });
+      if (data.bulk) {
+        setStatus({ type: "bulk", message: `导入了 ${data.okCount} 个角色`, bulkResults: data });
+      } else {
+        setStatus({ type: "success", message: "导入成功！", agentId: data.agent.id, agentName: data.agent.name });
+      }
     } catch {
       setStatus({ type: "error", message: "网络错误，请稍后重试" });
     }
@@ -135,6 +141,29 @@ export function ImportForm() {
           <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg text-sm text-destructive">
             <XCircle className="w-4 h-4 shrink-0" />
             <span>{status.message}</span>
+          </div>
+        )}
+
+        {status.type === "bulk" && status.bulkResults && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg text-sm text-emerald-700 dark:text-emerald-300">
+              <CheckCircle2 className="w-4 h-4" />
+              批量导入完成：{status.bulkResults.okCount} 成功
+              {status.bulkResults.skipCount > 0 && `，${status.bulkResults.skipCount} 跳过`}
+              {status.bulkResults.failCount > 0 && `，${status.bulkResults.failCount} 失败`}
+            </div>
+            <div className="max-h-48 overflow-y-auto space-y-1 border rounded-lg p-2">
+              {status.bulkResults.results.map((r, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs py-1 px-2 rounded">
+                  {r.status === "ok" && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                  {r.status === "skip" && <span className="w-3 h-3 text-amber-500">⊘</span>}
+                  {r.status === "fail" && <XCircle className="w-3 h-3 text-red-500" />}
+                  <span className="font-medium truncate">{r.name}</span>
+                  <span className="text-muted-foreground truncate">{r.path}</span>
+                  {r.reason && <span className="text-muted-foreground ml-auto">{r.reason}</span>}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

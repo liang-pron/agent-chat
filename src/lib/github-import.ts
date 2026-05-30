@@ -194,6 +194,72 @@ export function parseSkillMdContent(content: string): ParsedSkill | null {
   };
 }
 
+// ─── Bulk import: find all SKILL.md files in a repo ────────────
+
+interface SkillMdFile {
+  path: string;    // e.g., "agents/zhangxuefeng/SKILL.md"
+  url: string;     // GitHub API URL for contents
+}
+
+/** Recursively find all SKILL.md files in a GitHub repo */
+export async function findAllSkillMdFiles(
+  owner: string,
+  repo: string
+): Promise<SkillMdFile[]> {
+  const branch = await getDefaultBranch(owner, repo);
+  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "AgentPlaza/1.0",
+      ...(process.env.GITHUB_TOKEN
+        ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+        : {}),
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+
+  if (!response.ok) {
+    throw { code: "NOT_FOUND", status: response.status };
+  }
+
+  const data = (await response.json()) as {
+    tree?: { path: string; type: string; url: string }[];
+  };
+
+  return (data.tree || [])
+    .filter((item) => item.type === "blob" && item.path.endsWith("SKILL.md"))
+    .map((item) => ({ path: item.path, url: item.url }));
+}
+
+async function getDefaultBranch(owner: string, repo: string): Promise<string> {
+  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}`;
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "AgentPlaza/1.0",
+      ...(process.env.GITHUB_TOKEN
+        ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+        : {}),
+    },
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!response.ok) throw { code: "NOT_FOUND", status: response.status };
+  const data = (await response.json()) as { default_branch: string };
+  return data.default_branch || "main";
+}
+
+/** Fetch and parse a SKILL.md from a specific path in a repo */
+export async function fetchAndParseSkillMd(
+  owner: string,
+  repo: string,
+  path: string
+): Promise<{ name: string; description: string; systemPrompt: string; category?: string } | null> {
+  const content = await fetchFileContent(owner, repo, path);
+  return parseSkillMdContent(content);
+}
+
 // ─── SKILL.md parser (GitHub) ─────────────────────────────────
 
 async function fetchSkillMd(

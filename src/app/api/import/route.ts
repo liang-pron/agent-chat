@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { importFromGitHub, parseSkillMdContent } from "@/lib/github-import";
+import { importFromGitHub, parseSkillMdContent, findAllSkillMdFiles, fetchAndParseSkillMd } from "@/lib/github-import";
+import { validateGitHubUrl } from "@/lib/validators";
 import { classifyAgent } from "@/lib/classifier";
 import { registerAgent, isRepoImported } from "@/lib/agent-registry";
 
@@ -105,6 +106,79 @@ async function handleDirectUrl(url: string) {
 }
 
 async function handleGithubImport(githubUrl: string) {
+  // First, check if the repo has multiple SKILL.md files
+  try {
+    const parsed = validateGitHubUrl(githubUrl);
+    if (!("error" in parsed)) {
+      const skillFiles = await findAllSkillMdFiles(parsed.owner, parsed.repo);
+
+      // If multiple SKILL.md found, do bulk import
+      if (skillFiles.length > 1) {
+        return handleBulkGithubImport(parsed.owner, parsed.repo, githubUrl, skillFiles);
+      }
+    }
+  } catch {
+    // Fall through to single import
+  }
+
+  return handleSingleGithubImport(githubUrl);
+}
+
+async function handleBulkGithubImport(
+  owner: string, repo: string, baseUrl: string,
+  skillFiles: { path: string; url: string }[]
+) {
+  const results: { path: string; name: string; status: "ok" | "skip" | "fail"; reason?: string }[] = [];
+  const imported: { id: string; name: string }[] = [];
+
+  for (const file of skillFiles) {
+    try {
+      const parsed = await fetchAndParseSkillMd(owner, repo, file.path);
+      if (!parsed) {
+        results.push({ path: file.path, name: "-", status: "fail", reason: "无法解析" });
+        continue;
+      }
+
+      const repoUrl = `https://github.com/${owner}/${repo}/blob/main/${file.path}`;
+      const alreadyImported = await isRepoImported(repoUrl);
+      if (alreadyImported) {
+        results.push({ path: file.path, name: parsed.name, status: "skip", reason: "已导入" });
+        continue;
+      }
+
+      const category = parsed.category || await classifyAgent(parsed.name, parsed.description, parsed.systemPrompt);
+      const modelConfig = { provider: "deepseek", model: "deepseek-chat", apiEndpoint: "https://api.deepseek.com/v1", apiKeyEnv: "DEEPSEEK_API_KEY" };
+
+      const agent = await registerAgent({
+        name: parsed.name,
+        description: parsed.description,
+        category,
+        githubUrl: repoUrl,
+        systemPrompt: parsed.systemPrompt,
+        modelConfig: JSON.stringify(modelConfig),
+      });
+
+      results.push({ path: file.path, name: parsed.name, status: "ok" });
+      imported.push({ id: agent.id, name: agent.name });
+    } catch {
+      results.push({ path: file.path, name: "-", status: "fail", reason: "导入出错" });
+    }
+  }
+
+  const okCount = results.filter((r) => r.status === "ok").length;
+  const skipCount = results.filter((r) => r.status === "skip").length;
+  const failCount = results.filter((r) => r.status === "fail").length;
+
+  return NextResponse.json({
+    bulk: true,
+    total: skillFiles.length,
+    okCount, skipCount, failCount,
+    results,
+    agents: imported,
+  }, { status: 201 });
+}
+
+async function handleSingleGithubImport(githubUrl: string) {
   const result = await importFromGitHub(githubUrl);
 
   if (!result.success) {
