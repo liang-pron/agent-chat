@@ -42,7 +42,18 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ files: previews, total: files.length });
   } catch (err) {
+    const e = err as { code?: string; status?: number; message?: string };
+    if (e.code === "RATE_LIMITED" || e.status === 403) {
+      return NextResponse.json({
+        error: "GitHub API 请求次数超限。解决方法：在 .env 中添加 GITHUB_TOKEN（无需权限，仅提高限额）。从 https://github.com/settings/tokens 创建 token。",
+      }, { status: 429 });
+    }
+    if (e.code === "NOT_FOUND" || e.status === 404) {
+      return NextResponse.json({ error: "仓库不存在或为私有仓库" }, { status: 404 });
+    }
     console.error("Scan error:", err);
-    return NextResponse.json({ error: "扫描失败，请检查链接是否正确" }, { status: 502 });
+    return NextResponse.json({
+      error: `扫描失败: ${(err as Error).message || "请检查链接是否正确"}`,
+    }, { status: 502 });
   }
 }

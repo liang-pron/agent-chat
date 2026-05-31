@@ -246,7 +246,11 @@ async function getDefaultBranch(owner: string, repo: string): Promise<string> {
     },
     signal: AbortSignal.timeout(5000),
   });
-  if (!response.ok) throw { code: "NOT_FOUND", status: response.status };
+  if (!response.ok) {
+    if (response.status === 403) throw { code: "RATE_LIMITED", status: 403 };
+    if (response.status === 404) throw { code: "NOT_FOUND", status: 404 };
+    throw { code: "FETCH_ERROR", status: response.status };
+  }
   const data = (await response.json()) as { default_branch: string };
   return data.default_branch || "main";
 }
