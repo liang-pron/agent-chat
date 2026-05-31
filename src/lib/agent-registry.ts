@@ -56,6 +56,11 @@ export async function deleteAgent(id: string): Promise<void> {
   await prisma.agent.delete({ where: { id } });
 }
 
+/** Bulk delete multiple agents */
+export async function deleteAgents(ids: string[]): Promise<void> {
+  await prisma.agent.deleteMany({ where: { id: { in: ids } } });
+}
+
 /** Get messages for a specific agent + session */
 export async function getMessages(agentId: string, sessionId: string) {
   return prisma.chatMessage.findMany({

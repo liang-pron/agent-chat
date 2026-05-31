@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listAgents, registerAgent } from "@/lib/agent-registry";
+import { listAgents, registerAgent, deleteAgents } from "@/lib/agent-registry";
 
 /** GET /api/agents — list all agents, optionally filtered by category */
 export async function GET(req: NextRequest) {
@@ -39,5 +39,18 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("Failed to create agent:", err);
     return NextResponse.json({ error: "创建角色失败" }, { status: 500 });
+  }
+}
+
+/** DELETE /api/agents — bulk delete agents { ids: string[] } */
+export async function DELETE(req: NextRequest) {
+  try {
+    const { ids } = await req.json() as { ids?: string[] };
+    if (!ids?.length) return NextResponse.json({ error: "请选择要删除的角色" }, { status: 400 });
+    await deleteAgents(ids);
+    return NextResponse.json({ ok: true, deleted: ids.length });
+  } catch (err) {
+    console.error("Failed to delete agents:", err);
+    return NextResponse.json({ error: "删除失败" }, { status: 500 });
   }
 }

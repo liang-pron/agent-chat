@@ -23,9 +23,15 @@ const CATEGORY_COLORS: Record<string, string> = {
 export function AgentCard({
   agent,
   onUpdate,
+  selectMode,
+  selected,
+  onToggleSelect,
 }: {
   agent: Agent;
   onUpdate: () => void;
+  selectMode?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }) {
   const [showEdit, setShowEdit] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -48,9 +54,30 @@ export function AgentCard({
 
   return (
     <>
-      <Card className="group h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 hover:border-emerald-500/40 relative rounded-2xl">
+      <Card className={`group h-full transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 relative rounded-2xl ${
+        selectMode && selected ? "border-destructive ring-2 ring-destructive/20" : "hover:border-emerald-500/40"
+      }`}>
+        {/* Select mode checkbox */}
+        {selectMode && (
+          <div
+            className="absolute top-3 left-3 z-10 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-colors"
+            style={{ borderColor: selected ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground)/0.3)", backgroundColor: selected ? "hsl(var(--destructive))" : "hsl(var(--background)/0.9)" }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleSelect?.(agent.id);
+            }}
+          >
+            {selected && (
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+        )}
+
         {/* Click area → chat */}
-        <Link href={`/chat/${agent.id}`} className="block h-full">
+        <Link href={`/chat/${agent.id}`} className={`block h-full ${selectMode ? "pointer-events-none" : ""}`}>
           <CardContent className="p-5 flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all shrink-0">
