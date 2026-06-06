@@ -184,7 +184,7 @@ DeepSeek 目前的价格大约是 **100 万输出 token 收 ¥2**（约等于 30
 ### 支持哪些角色格式？
 
 - `SKILL.md`（标准 Agent Skill 格式，推荐）
-- `agent.json`（简单 JSON 配置）
+
 
 ### 聊天记录存在哪？
 
