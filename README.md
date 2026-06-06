@@ -148,25 +148,7 @@ category: 教育
 ...
 ```
 
-### 也可以用 `agent.json`
 
-```json
-{
-  "name": "张雪峰",
-  "description": "高考志愿填报专家",
-  "systemPrompt": "你是张雪峰...",
-  "category": "教育",
-  "model": { "provider": "deepseek", "model": "deepseek-chat" }
-}
-```
-
-### 创建你自己的角色
-
-Fork 我们的模板仓库，改一下 `SKILL.md`，粘贴你的 Fork 地址就能导入：
-
-👉 [agent-chat-template](https://github.com/liang-pron/agent-chat-template)
-
----
 
 ## 📖 使用指南
 
